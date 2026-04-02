@@ -47,4 +47,34 @@ router.get('/contest/:id/standings', cacheMiddleware(), async (req, res) => {
     }
 });
 
+// Get problem recommendations
+const { generateRecommendations } = require('../services/recommendationEngine');
+
+router.get('/user/:handle/recommendations', cacheMiddleware(), async (req, res) => {
+    try {
+        const handle = req.params.handle;
+
+        // Fetch all required data in parallel
+        const [userInfo, submissions, ratingHistory, problemsetData] = await Promise.all([
+            cf.getUserInfo(handle),
+            cf.getUserSubmissions(handle),
+            cf.getUserRating(handle),
+            cf.getProblemset(),
+        ]);
+
+        const userRating = userInfo[0]?.rating || null;
+
+        const result = await generateRecommendations(
+            userRating,
+            submissions,
+            ratingHistory,
+            problemsetData
+        );
+
+        res.json({ status: 'OK', result });
+    } catch (error) {
+        res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });
+    }
+});
+
 module.exports = router;

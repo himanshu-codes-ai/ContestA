@@ -7,15 +7,15 @@ import TopicAnalysis from './pages/TopicAnalysis';
 import UpsolvingTracker from './pages/UpsolvingTracker';
 import SubmissionHeatmap from './pages/SubmissionHeatmap';
 import Compare from './pages/Compare';
+import Recommendations from './pages/Recommendations';
 
 export default function App() {
     return (
         <div className="app-layout">
-            {/* Animated background */}
+            {/* Terminal background grid + scanlines */}
             <div className="bg-grid" />
             <div className="orb orb-1" />
             <div className="orb orb-2" />
-            <div className="orb orb-3" />
 
             <Navbar />
             <main className="main-content">
@@ -30,6 +30,8 @@ export default function App() {
                     <Route path="/heatmap" element={<SubmissionHeatmap />} />
                     <Route path="/heatmap/:handle" element={<SubmissionHeatmap />} />
                     <Route path="/compare" element={<Compare />} />
+                    <Route path="/recommend" element={<Recommendations />} />
+                    <Route path="/recommend/:handle" element={<Recommendations />} />
                 </Routes>
             </main>
         </div>

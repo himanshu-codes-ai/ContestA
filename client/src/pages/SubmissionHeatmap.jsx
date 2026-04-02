@@ -18,33 +18,27 @@ export default function SubmissionHeatmap() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        if (handle) loadData();
-    }, [handle]);
+    useEffect(() => { if (handle) loadData(); }, [handle]);
 
     async function loadData() {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
         try {
             const subs = await fetchSubmissions(handle);
             const data = getHeatmapData(subs);
-            setHeatmapData(data);
-            setStats(getHeatmapStats(data));
-        } catch (err) {
-            setError(err.response?.data?.comment || err.message);
-        } finally {
-            setLoading(false);
-        }
+            setHeatmapData(data); setStats(getHeatmapStats(data));
+        } catch (err) { setError(err.response?.data?.comment || err.message); }
+        finally { setLoading(false); }
     }
 
     if (!handle) {
         return (
-            <div className="page-enter" style={{ textAlign: 'center', paddingTop: '100px' }}>
-                <h2 className="text-2xl font-bold mb-2">🔥 Submission Heatmap</h2>
-                <p className="mb-6" style={{ color: 'var(--color-text-secondary)' }}>See your daily coding activity on Codeforces</p>
-                <form onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/heatmap/${inputHandle.trim()}`); }} style={{ display: 'flex', gap: '12px', maxWidth: '400px', margin: '0 auto' }}>
+            <div className="prompt-state page-enter">
+                <div style={{ fontSize: '40px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite', color: 'var(--color-accent-green)' }}>▣</div>
+                <h2>Activity Heatmap</h2>
+                <p>Visualize your daily coding activity on Codeforces</p>
+                <form onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/heatmap/${inputHandle.trim()}`); }} style={{ display: 'flex', gap: '10px', maxWidth: '400px', margin: '0 auto', width: '100%' }}>
                     <input value={inputHandle} onChange={(e) => setInputHandle(e.target.value)} placeholder="Codeforces handle..." className="input-field" />
-                    <button type="submit" className="btn-primary">View</button>
+                    <button type="submit" className="btn-primary">Render</button>
                 </form>
             </div>
         );
@@ -56,7 +50,6 @@ export default function SubmissionHeatmap() {
     const today = new Date();
     const startDate = new Date(today);
     startDate.setFullYear(startDate.getFullYear() - 1);
-
     const maxCount = Math.max(...heatmapData.map((d) => d.count), 1);
 
     function classForValue(value) {
@@ -70,54 +63,44 @@ export default function SubmissionHeatmap() {
 
     return (
         <div className="page-enter">
-            <h1 className="text-2xl font-bold mb-6">
-                🔥 Submission Heatmap —{' '}
-                <span className="gradient-text">{handle}</span>
-            </h1>
+            <div style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-text-bright)' }}>
+                    Activity Heatmap
+                </h1>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                    Daily submission activity for <span style={{ color: 'var(--color-accent-green)' }}>{handle}</span>
+                </p>
+            </div>
 
             {stats && (
-                <div className="stat-grid" style={{ marginBottom: '24px' }}>
-                    <StatCard icon="🔥" label="Longest Streak" value={`${stats.longestStreak} days`} color="var(--gradient-warm)" />
-                    <StatCard icon="📅" label="Active Days" value={stats.totalActiveDays} color="var(--gradient-success)" />
-                    <StatCard icon="⚡" label="Busiest Day" value={stats.busiestDay || '—'} subtitle={`${stats.maxCount} submissions`} color="var(--gradient-primary)" />
+                <div className="stat-grid" style={{ marginBottom: '20px' }}>
+                    <StatCard icon="🔥" label="Longest Streak" value={`${stats.longestStreak} days`} color="var(--gradient-amber)" />
+                    <StatCard icon="📅" label="Active Days" value={stats.totalActiveDays} color="var(--gradient-green)" />
+                    <StatCard icon="⚡" label="Busiest Day" value={stats.busiestDay || '—'} subtitle={`${stats.maxCount} submissions`} color="var(--gradient-cyan)" />
                 </div>
             )}
 
-            <div className="glass-card">
-                <h2 className="section-title">Last 12 Months</h2>
-                <div style={{ overflowX: 'auto', padding: '10px 0' }}>
-                    <CalendarHeatmap
-                        startDate={startDate}
-                        endDate={today}
-                        values={heatmapData}
-                        classForValue={classForValue}
-                        tooltipDataAttrs={(value) => {
-                            if (!value || !value.date) return {};
-                            return {
-                                'data-tooltip-id': 'heatmap-tooltip',
-                                'data-tooltip-content': `${value.date}: ${value.count} submission${value.count !== 1 ? 's' : ''}`,
-                            };
+            <div className="glass-card-static">
+                <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h2 className="section-title" style={{ marginBottom: 0 }}>■ Last 12 Months</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>Less</span>
+                        {['color-empty','color-scale-1','color-scale-2','color-scale-3','color-scale-4'].map((cls) => (
+                            <svg key={cls} width="12" height="12"><rect width="12" height="12" className={cls} rx="1" /></svg>
+                        ))}
+                        <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>More</span>
+                    </div>
+                </div>
+                <div style={{ overflowX: 'auto', padding: '8px 0' }}>
+                    <CalendarHeatmap startDate={startDate} endDate={today} values={heatmapData} classForValue={classForValue}
+                        tooltipDataAttrs={(v) => {
+                            if (!v || !v.date) return {};
+                            return { 'data-tooltip-id': 'heatmap-tooltip', 'data-tooltip-content': `${v.date}: ${v.count} submission${v.count !== 1 ? 's' : ''}` };
                         }}
                         showWeekdayLabels
                     />
                     <Tooltip id="heatmap-tooltip" />
-                </div>
-                <div className="flex items-center gap-2 mt-4" style={{ justifyContent: 'flex-end' }}>
-                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Less</span>
-                    {['color-empty', 'color-scale-1', 'color-scale-2', 'color-scale-3', 'color-scale-4'].map((cls) => (
-                        <div
-                            key={cls}
-                            style={{
-                                width: '14px',
-                                height: '14px',
-                                borderRadius: '3px',
-                            }}
-                            className={`react-calendar-heatmap ${cls}`}
-                        >
-                            <svg width="14" height="14"><rect width="14" height="14" className={cls} rx="2" /></svg>
-                        </div>
-                    ))}
-                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>More</span>
                 </div>
             </div>
         </div>

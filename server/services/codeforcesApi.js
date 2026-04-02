@@ -38,4 +38,8 @@ module.exports = {
     if (handles) params.handles = handles;
     return callCFApi('/contest.standings', params);
   },
+  getProblemset: async () => {
+    const result = await callCFApi('/problemset.problems');
+    return result; // { problems: [...], problemStatistics: [...] }
+  },
 };

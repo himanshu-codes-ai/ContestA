@@ -14,38 +14,28 @@ export default function UpsolvingTracker() {
     const [error, setError] = useState(null);
     const [doneSet, setDoneSet] = useState(new Set());
 
-    useEffect(() => {
-        if (handle) loadData();
-    }, [handle]);
+    useEffect(() => { if (handle) loadData(); }, [handle]);
 
     async function loadData() {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
         try {
             const [subs, ratings] = await Promise.all([fetchSubmissions(handle), fetchRating(handle)]);
             setUnsolved(getUnsolvedProblems(subs, ratings));
-        } catch (err) {
-            setError(err.response?.data?.comment || err.message);
-        } finally {
-            setLoading(false);
-        }
+        } catch (err) { setError(err.response?.data?.comment || err.message); }
+        finally { setLoading(false); }
     }
 
     const toggleDone = (key) => {
-        setDoneSet((prev) => {
-            const next = new Set(prev);
-            next.has(key) ? next.delete(key) : next.add(key);
-            return next;
-        });
+        setDoneSet((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
     };
 
     if (!handle) {
         return (
             <div className="prompt-state page-enter">
-                <div style={{ fontSize: '48px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite' }}>◎</div>
+                <div style={{ fontSize: '40px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite', color: 'var(--color-accent-green)' }}>◎</div>
                 <h2>Upsolving Tracker</h2>
-                <p>Track unsolved problems from your recent contests and mark your progress</p>
-                <form onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/upsolving/${inputHandle.trim()}`); }} style={{ display: 'flex', gap: '12px', width: '100%', maxWidth: '400px' }}>
+                <p>Track unsolved problems from recent contests and mark your progress</p>
+                <form onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/upsolving/${inputHandle.trim()}`); }} style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '400px' }}>
                     <input value={inputHandle} onChange={(e) => setInputHandle(e.target.value)} placeholder="Codeforces handle..." className="input-field" />
                     <button type="submit" className="btn-primary">Track →</button>
                 </form>
@@ -56,115 +46,94 @@ export default function UpsolvingTracker() {
     if (loading) return <LoadingSpinner message={`Finding unsolved problems for ${handle}...`} />;
     if (error) return <ErrorState message={error} onRetry={loadData} />;
 
-    const completed = [...doneSet].length;
+    const completed = doneSet.size;
 
     return (
         <div className="page-enter">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                        Upsolving Tracker — <span className="gradient-text">{handle}</span>
+                    <h1 style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-text-bright)' }}>
+                        Upsolving <span style={{ color: 'var(--color-accent-green)' }}>Tracker</span>
                     </h1>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginTop: '4px' }}>
-                        {unsolved.length} unsolved problems from recent contests
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                        Unsolved problems from recent contests · {handle}
                     </p>
                 </div>
-                {unsolved.length > 0 && (
-                    <div className="badge badge-green" style={{ fontSize: '12px' }}>
-                        ✓ {completed} / {unsolved.length} completed
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ background: 'rgba(0,255,65,0.06)', border: '1px solid rgba(0,255,65,0.2)', borderRadius: '2px', padding: '8px 14px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-code)', color: 'var(--color-accent-green)' }}>{unsolved.length}</p>
+                        <p style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>Pending</p>
                     </div>
-                )}
+                    <div style={{ background: 'rgba(255,184,0,0.06)', border: '1px solid rgba(255,184,0,0.2)', borderRadius: '2px', padding: '8px 14px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-code)', color: 'var(--color-accent-amber)' }}>
+                            {unsolved.length > 0 ? ((completed / unsolved.length) * 100).toFixed(1) : 0}%
+                        </p>
+                        <p style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>Done</p>
+                    </div>
+                </div>
             </div>
 
             {unsolved.length === 0 ? (
-                <div className="glass-card-static" style={{ textAlign: 'center', padding: '80px 40px' }}>
-                    <div className="accent-line" style={{ background: 'var(--gradient-success)' }} />
-                    <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
-                    <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>All caught up!</h3>
-                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>
-                        You've solved all problems from your recent contests. Great job!
+                <div className="glass-card-static" style={{ textAlign: 'center', padding: '60px 40px' }}>
+                    <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
+                    <div style={{ fontSize: '40px', marginBottom: '16px' }}>✓</div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, marginBottom: '8px', fontFamily: 'var(--font-display)', color: 'var(--color-accent-green)' }}>
+                        All caught up!
+                    </h3>
+                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>
+                        You've solved all problems from your recent contests. Great work!
                     </p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-3">
-                    {unsolved.map((p, idx) => {
+                <div className="glass-card-static">
+                    <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
+                    <h2 className="section-title">■ Problems to Upsolve</h2>
+                    <div style={{
+                        display: 'grid', gridTemplateColumns: '36px 1fr auto auto auto',
+                        gap: '12px', alignItems: 'center', padding: '8px 16px', marginBottom: '4px',
+                        fontSize: '10px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)',
+                        borderBottom: '1px solid var(--border-color-dim)',
+                    }}>
+                        <span></span><span>Problem</span><span>Rating</span><span>Tags</span><span>Link</span>
+                    </div>
+                    {unsolved.map((p) => {
                         const key = `${p.contestId}-${p.index}`;
                         const isDone = doneSet.has(key);
                         return (
-                            <div
-                                key={key}
-                                className="glass-card"
-                                style={{
-                                    padding: '18px 24px',
-                                    display: 'flex', alignItems: 'center', gap: '16px',
-                                    opacity: isDone ? 0.45 : 1,
-                                    animationDelay: `${idx * 0.03}s`,
-                                    animationFillMode: 'backwards',
-                                }}
-                            >
-                                {/* Check button */}
-                                <button
-                                    onClick={() => toggleDone(key)}
-                                    style={{
-                                        width: '26px', height: '26px', borderRadius: '8px', flexShrink: 0,
-                                        border: isDone ? 'none' : '2px solid var(--border-color-hover)',
-                                        background: isDone ? 'var(--color-accent-green)' : 'transparent',
-                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        color: 'white', fontSize: '12px', fontWeight: 700,
-                                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        boxShadow: isDone ? '0 0 12px rgba(0, 230, 140, 0.3)' : 'none',
-                                    }}
-                                >
+                            <div key={key} style={{
+                                display: 'grid', gridTemplateColumns: '36px 1fr auto auto auto',
+                                gap: '12px', alignItems: 'center', padding: '12px 16px',
+                                opacity: isDone ? 0.4 : 1, borderBottom: '1px solid rgba(48,54,61,0.3)',
+                                transition: 'all 0.2s ease', background: isDone ? 'rgba(0,255,65,0.02)' : 'transparent',
+                            }}>
+                                <button onClick={() => toggleDone(key)} style={{
+                                    width: '22px', height: '22px', borderRadius: '2px', flexShrink: 0,
+                                    border: isDone ? 'none' : '1px solid var(--border-color-hover)',
+                                    background: isDone ? 'var(--color-accent-green)' : 'transparent',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: isDone ? '#0a0e0f' : 'transparent', fontSize: '11px', fontWeight: 700,
+                                    boxShadow: isDone ? '0 0 10px rgba(0,255,65,0.3)' : 'none',
+                                }}>
                                     {isDone ? '✓' : ''}
                                 </button>
-
-                                {/* Problem info */}
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <a
-                                        href={p.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            color: 'var(--color-accent-blue)', fontWeight: 600, fontSize: '14px',
-                                            textDecoration: isDone ? 'line-through' : 'none',
-                                            transition: 'color 0.2s',
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.color = '#6da9ff'}
-                                        onMouseLeave={(e) => e.target.style.color = 'var(--color-accent-blue)'}
-                                    >
-                                        {p.index}. {p.name}
-                                    </a>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                                        {p.tags?.slice(0, 4).map((tag) => (
-                                            <span key={tag} className="tag-chip">{tag}</span>
-                                        ))}
-                                        {p.tags?.length > 4 && (
-                                            <span className="tag-chip" style={{ opacity: 0.6 }}>+{p.tags.length - 4}</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Rating */}
-                                {p.rating && (
-                                    <span style={{
-                                        fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '13px',
-                                        padding: '5px 12px', borderRadius: '8px',
-                                        background: 'rgba(168, 85, 247, 0.1)',
-                                        color: 'var(--color-accent-purple)',
-                                        border: '1px solid rgba(168, 85, 247, 0.15)',
-                                    }}>
+                                <a href={p.link} target="_blank" rel="noopener noreferrer" style={{
+                                    color: 'var(--color-accent-green)', fontWeight: 600, fontSize: '12px',
+                                    textDecoration: isDone ? 'line-through' : 'none', fontFamily: 'var(--font-mono)',
+                                }}>
+                                    {p.index}. {p.name}
+                                </a>
+                                {p.rating ? (
+                                    <span style={{ fontFamily: 'var(--font-code)', fontWeight: 700, fontSize: '11px', padding: '3px 10px', borderRadius: '2px',
+                                        background: 'rgba(255,184,0,0.06)', color: 'var(--color-accent-amber)', border: '1px solid rgba(255,184,0,0.15)' }}>
                                         {p.rating}
                                     </span>
-                                )}
-
-                                {/* Editorial link */}
-                                <a
-                                    href={`https://codeforces.com/blog/entry/${p.contestId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn-secondary"
-                                    style={{ padding: '6px 14px', fontSize: '11px', flexShrink: 0, borderRadius: '8px' }}
-                                >
+                                ) : <span />}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                                    {p.tags?.slice(0, 2).map((tag) => <span key={tag} className="tag-chip">{tag}</span>)}
+                                    {p.tags?.length > 2 && <span className="tag-chip" style={{ opacity: 0.5 }}>+{p.tags.length - 2}</span>}
+                                </div>
+                                <a href={`https://codeforces.com/blog/entry/${p.contestId}`} target="_blank" rel="noopener noreferrer"
+                                    className="btn-secondary" style={{ padding: '4px 10px', fontSize: '10px', flexShrink: 0, borderRadius: '2px' }}>
                                     Editorial →
                                 </a>
                             </div>

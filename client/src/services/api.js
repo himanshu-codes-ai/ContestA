@@ -27,4 +27,9 @@ export async function fetchContestStandings(contestId, handles) {
     return res.data.result;
 }
 
+export async function fetchRecommendations(handle) {
+    const res = await api.get(`/user/${handle}/recommendations`);
+    return res.data.result;
+}
+
 export default api;

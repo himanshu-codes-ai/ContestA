@@ -8,6 +8,7 @@ const navItems = [
     { path: '/upsolving', label: 'Upsolving', icon: '◎' },
     { path: '/heatmap', label: 'Heatmap', icon: '▣' },
     { path: '/compare', label: 'Compare', icon: '⇔' },
+    { path: '/recommend', label: 'Recommend', icon: '◆' },
 ];
 
 export default function Navbar() {
@@ -30,12 +31,12 @@ export default function Navbar() {
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 style={{
-                    position: 'fixed', top: '16px', left: '16px', zIndex: 60,
-                    width: '44px', height: '44px', borderRadius: '12px',
-                    background: 'var(--color-bg-elevated)', border: '1px solid var(--border-color)',
-                    color: 'var(--color-text-primary)', cursor: 'pointer',
-                    display: 'none', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
-                    backdropFilter: 'blur(12px)',
+                    position: 'fixed', top: '14px', left: '14px', zIndex: 60,
+                    width: '40px', height: '40px', borderRadius: '2px',
+                    background: 'var(--color-bg-elevated)', border: '1px solid var(--border-color-dim)',
+                    color: 'var(--color-accent-green)', cursor: 'pointer',
+                    display: 'none', alignItems: 'center', justifyContent: 'center', fontSize: '16px',
+                    fontFamily: 'var(--font-mono)',
                 }}
                 className="mobile-nav-toggle"
             >
@@ -46,56 +47,63 @@ export default function Navbar() {
             {/* Overlay */}
             {mobileOpen && (
                 <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(5,8,22,0.7)', backdropFilter: 'blur(4px)' }}
+                    style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(10,14,15,0.8)', backdropFilter: 'blur(4px)' }}
                     onClick={() => setMobileOpen(false)}
-                    className="mobile-only"
                 />
             )}
 
             {/* Sidebar */}
             <nav
                 style={{
-                    position: 'fixed', top: 0, left: 0, height: '100vh', width: '280px', zIndex: 50,
+                    position: 'fixed', top: 0, left: 0, height: '100vh', width: '260px', zIndex: 50,
                     display: 'flex', flexDirection: 'column',
-                    background: 'rgba(8, 12, 30, 0.85)',
-                    backdropFilter: 'blur(32px) saturate(1.5)',
-                    WebkitBackdropFilter: 'blur(32px) saturate(1.5)',
-                    borderRight: '1px solid var(--border-color)',
-                    transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: 'rgba(10, 14, 15, 0.97)',
+                    borderRight: '1px solid var(--border-color-dim)',
+                    transition: 'transform 0.3s ease',
                     transform: mobileOpen ? 'translateX(0)' : undefined,
                 }}
                 className={`nav-sidebar ${mobileOpen ? '' : 'nav-hidden-mobile'}`}
             >
                 <style>{`
-          @media (max-width: 1024px) {
-            .nav-hidden-mobile { transform: translateX(-100%) !important; }
-          }
-        `}</style>
+                    @media (max-width: 1024px) {
+                        .nav-hidden-mobile { transform: translateX(-100%) !important; }
+                    }
+                `}</style>
 
-                {/* Logo */}
-                <div style={{ padding: '28px 24px 20px', borderBottom: '1px solid var(--border-color)' }}>
-                    <div className="flex items-center gap-3">
+                {/* Logo / Branding */}
+                <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border-color-dim)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
-                            width: '42px', height: '42px', borderRadius: '12px',
-                            background: 'var(--gradient-primary)',
+                            width: '36px', height: '36px', borderRadius: '2px',
+                            background: 'rgba(0, 255, 65, 0.1)',
+                            border: '1px solid rgba(0, 255, 65, 0.3)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '20px', boxShadow: 'var(--shadow-glow-blue)',
+                            fontSize: '16px', color: 'var(--color-accent-green)',
                         }}>
                             ⚡
                         </div>
                         <div>
-                            <h1 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                                <span className="gradient-text">CF Analyzer</span>
+                            <h1 style={{
+                                fontSize: '15px', fontWeight: 700, letterSpacing: '0.02em',
+                                fontFamily: 'var(--font-display)',
+                                color: 'var(--color-accent-green)',
+                                textShadow: '0 0 15px rgba(0, 255, 65, 0.3)',
+                            }}>
+                                CF Analyzer
                             </h1>
-                            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                                Contest Analytics
+                            <p style={{
+                                fontSize: '10px', color: 'var(--color-text-muted)',
+                                letterSpacing: '0.04em',
+                                fontFamily: 'var(--font-mono)', marginTop: '2px',
+                            }}>
+                                Contest Analytics <span className="status-online" style={{ marginLeft: '4px' }}></span>
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {/* Search */}
-                <div style={{ padding: '16px 20px' }}>
+                <div style={{ padding: '14px 16px' }}>
                     <form onSubmit={handleSearch}>
                         <div style={{ position: 'relative' }}>
                             <input
@@ -104,15 +112,14 @@ export default function Navbar() {
                                 onChange={(e) => setHandle(e.target.value)}
                                 placeholder="Search handle..."
                                 className="input-field"
-                                style={{ fontSize: '13px', padding: '10px 38px 10px 14px', borderRadius: '10px' }}
+                                style={{ fontSize: '12px', padding: '9px 32px 9px 12px', borderRadius: '2px' }}
                             />
                             <button
                                 type="submit"
                                 style={{
-                                    position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                                    position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
                                     background: 'none', border: 'none', cursor: 'pointer',
-                                    color: 'var(--color-text-muted)', fontSize: '14px',
-                                    transition: 'color 0.2s',
+                                    color: 'var(--color-text-muted)', fontSize: '12px',
                                 }}
                             >
                                 🔍
@@ -122,14 +129,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Nav Items */}
-                <div style={{ flex: 1, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <p style={{
-                        fontSize: '10px', fontWeight: 600, color: 'var(--color-text-muted)',
-                        textTransform: 'uppercase', letterSpacing: '0.08em',
-                        padding: '8px 16px 6px', marginBottom: '4px',
-                    }}>
-                        Navigation
-                    </p>
+                <div style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
@@ -137,35 +137,47 @@ export default function Navbar() {
                             end={item.exact}
                             onClick={() => setMobileOpen(false)}
                             style={({ isActive }) => ({
-                                display: 'flex', alignItems: 'center', gap: '14px',
-                                padding: '11px 16px', borderRadius: '10px',
+                                display: 'flex', alignItems: 'center', gap: '12px',
+                                padding: '10px 14px', borderRadius: '2px',
                                 textDecoration: 'none', fontSize: '13px',
-                                fontWeight: isActive ? 600 : 450,
-                                color: isActive ? 'var(--color-accent-blue)' : 'var(--color-text-secondary)',
-                                background: isActive ? 'rgba(79, 143, 247, 0.1)' : 'transparent',
-                                borderLeft: isActive ? '3px solid var(--color-accent-blue)' : '3px solid transparent',
-                                transition: 'all 0.25s ease',
-                                letterSpacing: '0.01em',
+                                fontWeight: isActive ? 600 : 400,
+                                fontFamily: 'var(--font-mono)',
+                                color: isActive ? 'var(--color-accent-green)' : 'var(--color-text-secondary)',
+                                background: isActive ? 'rgba(0, 255, 65, 0.08)' : 'transparent',
+                                borderLeft: isActive ? '2px solid var(--color-accent-green)' : '2px solid transparent',
+                                transition: 'all 0.2s ease',
+                                letterSpacing: '0.02em',
                             })}
                         >
-                            <span style={{ fontSize: '16px', width: '20px', textAlign: 'center', opacity: 0.85 }}>{item.icon}</span>
+                            <span style={{ fontSize: '14px', width: '18px', textAlign: 'center', opacity: 0.7 }}>{item.icon}</span>
                             {item.label}
                         </NavLink>
                     ))}
                 </div>
 
+                {/* Initialize Button */}
+                <div style={{ padding: '12px 16px' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="btn-primary-filled"
+                        style={{
+                            width: '100%', justifyContent: 'center',
+                            padding: '10px 16px', fontSize: '12px',
+                        }}
+                    >
+                        ⚡ New Analysis
+                    </button>
+                </div>
+
                 {/* Footer */}
-                <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)' }}>
-                    <div style={{
-                        padding: '14px 16px', borderRadius: '12px',
-                        background: 'rgba(79, 143, 247, 0.06)', border: '1px solid rgba(79, 143, 247, 0.1)',
-                    }}>
-                        <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                            Pro Tip
-                        </p>
-                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                            Use the search bar to quickly lookup any Codeforces handle.
-                        </p>
+                <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-color-dim)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            <span>⚙</span> Settings
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            <span>⟲</span> Session
+                        </div>
                     </div>
                 </div>
             </nav>

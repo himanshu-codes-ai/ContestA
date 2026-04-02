@@ -4,37 +4,58 @@ export default function LoadingSpinner({ message = 'Loading data...' }) {
     return (
         <div className="page-enter" style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', minHeight: '50vh', gap: '24px',
+            justifyContent: 'center', minHeight: '50vh', gap: '20px',
         }}>
-            {/* Animated Rings */}
-            <div style={{ position: 'relative', width: '56px', height: '56px' }}>
+            <div style={{
+                background: 'var(--color-bg-card)',
+                border: '1px solid var(--border-color-dim)',
+                borderRadius: '2px',
+                padding: '24px 32px',
+                minWidth: '300px',
+                textAlign: 'center',
+            }}>
                 <div style={{
-                    position: 'absolute', inset: 0,
-                    border: '2px solid var(--border-color)',
-                    borderTopColor: 'var(--color-accent-blue)',
-                    borderRadius: '50%',
-                    animation: 'spin 0.9s linear infinite',
-                }} />
+                    fontSize: '11px', color: 'var(--color-text-muted)',
+                    fontFamily: 'var(--font-mono)', letterSpacing: '0.04em',
+                    marginBottom: '16px',
+                }}>
+                    Processing...
+                </div>
+
+                {/* Progress bar */}
                 <div style={{
-                    position: 'absolute', inset: '6px',
-                    border: '2px solid var(--border-color)',
-                    borderBottomColor: 'var(--color-accent-purple)',
-                    borderRadius: '50%',
-                    animation: 'spin 1.4s linear infinite reverse',
-                }} />
-                <div style={{
-                    position: 'absolute', inset: '12px',
-                    border: '2px solid var(--border-color)',
-                    borderTopColor: 'var(--color-accent-cyan)',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                }} />
+                    width: '100%', height: '3px', background: 'rgba(0, 255, 65, 0.08)',
+                    borderRadius: '1px', overflow: 'hidden', marginBottom: '16px',
+                }}>
+                    <div style={{
+                        height: '100%', background: 'var(--color-accent-green)',
+                        borderRadius: '1px',
+                        animation: 'loading-progress 2s ease-in-out infinite',
+                        boxShadow: '0 0 10px rgba(0, 255, 65, 0.5)',
+                    }} />
+                </div>
+
+                <p style={{
+                    color: 'var(--color-accent-green)', fontSize: '13px', fontWeight: 600,
+                    fontFamily: 'var(--font-mono)',
+                }}>
+                    {message}<span style={{ animation: 'blink 1s step-end infinite' }}>_</span>
+                </p>
+                <p style={{
+                    color: 'var(--color-text-muted)', fontSize: '11px', marginTop: '6px',
+                    fontFamily: 'var(--font-mono)',
+                }}>
+                    This may take a moment
+                </p>
             </div>
-            <div style={{ textAlign: 'center' }}>
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', fontWeight: 500 }}>{message}</p>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginTop: '4px' }}>This may take a moment</p>
-            </div>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+            <style>{`
+                @keyframes loading-progress {
+                    0% { width: 0%; }
+                    50% { width: 70%; }
+                    100% { width: 100%; }
+                }
+            `}</style>
         </div>
     );
 }

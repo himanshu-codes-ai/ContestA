@@ -4,52 +4,52 @@ import { useNavigate } from 'react-router-dom';
 const features = [
     {
         icon: '📊',
-        title: 'Performance Dashboard',
-        desc: 'Dive deep into rating history, contest analysis, and statistics with interactive charts.',
-        gradient: 'var(--gradient-primary)',
-        delay: 1,
+        title: 'Skill Gap Analysis',
+        desc: 'Identify your weak topic areas and difficulty tiers with precision. Cross-validated proficiency metrics against top competitive programmers.',
+        stat: '98.42%',
+        statLabel: 'Accuracy',
+        accent: 'var(--color-accent-green)',
+    },
+    {
+        icon: '⚔️',
+        title: 'Battle Mode',
+        desc: 'Ghost-track rating-matched rivals. Compare strategies and counter tactical pivots via head-to-head competition replays.',
+        accent: 'var(--color-accent-amber)',
+    },
+    {
+        icon: '📝',
+        title: 'Upsolving Pipeline',
+        desc: 'Smart prioritization of unsolved contest problems. Minimize wasted effort by targeting high-impact problems based on your growth trajectory.',
+        stat: '3.4x',
+        statLabel: 'Speed boost',
+        stat2: '12%',
+        stat2Label: 'Rating gain',
+        accent: 'var(--color-accent-green)',
+    },
+    {
+        icon: '🔥',
+        title: 'Activity Heatmap',
+        desc: 'GitHub-style contribution graph showing your daily solving streak and coding activity patterns over the past year.',
+        accent: 'var(--color-accent-cyan)',
     },
     {
         icon: '🏷️',
         title: 'Topic & Difficulty',
-        desc: 'Visualize your tag strengths with doughnut charts and identify skill gaps in difficulty levels.',
-        gradient: 'var(--gradient-success)',
-        delay: 2,
-    },
-    {
-        icon: '📝',
-        title: 'Upsolving Tracker',
-        desc: 'Auto-discover unsolved problems from recent contests and track your upsolving progress.',
-        gradient: 'var(--gradient-warm)',
-        delay: 3,
-    },
-    {
-        icon: '🔥',
-        title: 'Submission Heatmap',
-        desc: 'GitHub-style contribution graph showing your daily solving streak and activity patterns.',
-        gradient: 'var(--gradient-cool)',
-        delay: 4,
-    },
-    {
-        icon: '⚔️',
-        title: 'Head-to-Head Compare',
-        desc: 'Side-by-side radar charts, common contests, and shared strengths between any two coders.',
-        gradient: 'var(--gradient-sunset)',
-        delay: 5,
+        desc: 'Visualize your tag strengths with charts and identify skill gaps across different difficulty levels.',
+        accent: 'var(--color-accent-green)',
     },
     {
         icon: '🏆',
         title: 'Contest Insights',
-        desc: 'Analyze rank distribution, rating changes, and per-problem timing in specific rounds.',
-        gradient: 'var(--gradient-premium)',
-        delay: 6,
+        desc: 'Analyze rank distribution, rating changes, and per-problem timing across all your competitive rounds.',
+        accent: 'var(--color-accent-amber)',
     },
 ];
 
 const stats = [
     { value: '50K+', label: 'Contests Tracked' },
     { value: '200K+', label: 'Coders Analyzed' },
-    { value: '6', label: 'Unique Dashboards' },
+    { value: '6', label: 'Dashboards' },
     { value: '∞', label: 'Free Forever' },
 ];
 
@@ -64,40 +64,78 @@ export default function Home() {
 
     return (
         <div className="page-enter">
-            {/* Hero */}
-            <section style={{ textAlign: 'center', padding: '56px 0 36px', maxWidth: '680px', margin: '0 auto' }}>
-                {/* Badge */}
-                <div className="badge badge-blue" style={{ marginBottom: '24px' }}>
+            {/* Hero Section */}
+            <section style={{ textAlign: 'center', padding: '56px 0 32px', maxWidth: '720px', margin: '0 auto' }}>
+                {/* System status badge */}
+                <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    padding: '4px 14px', marginBottom: '24px',
+                    fontSize: '11px', fontFamily: 'var(--font-mono)',
+                    color: 'var(--color-accent-green)',
+                    background: 'rgba(0, 255, 65, 0.06)',
+                    border: '1px solid rgba(0, 255, 65, 0.15)',
+                    borderRadius: '2px', letterSpacing: '0.04em',
+                }}>
+                    <span className="status-online"></span>
                     ⚡ Competitive Programming Analytics
                 </div>
 
-                {/* Headline */}
+                {/* Main headline */}
                 <h1 style={{
-                    fontSize: 'clamp(34px, 5vw, 52px)', fontWeight: 900,
-                    lineHeight: 1.08, letterSpacing: '-0.03em', marginBottom: '20px',
+                    fontSize: 'clamp(36px, 6vw, 58px)',
+                    fontWeight: 900,
+                    lineHeight: 1.05,
+                    letterSpacing: '-0.02em',
+                    marginBottom: '20px',
+                    fontFamily: 'var(--font-display)',
+                    color: 'var(--color-text-bright)',
                 }}>
-                    Analyze Your{' '}
-                    <span className="gradient-text">Codeforces</span>
+                    Maximize Your{' '}
                     <br />
+                    <span style={{
+                        color: 'var(--color-accent-green)',
+                        fontStyle: 'italic',
+                        textShadow: '0 0 40px rgba(0, 255, 65, 0.4), 0 0 80px rgba(0, 255, 65, 0.15)',
+                    }}>
+                        Codeforces
+                    </span>{' '}
                     Performance
                 </h1>
 
                 <p style={{
-                    fontSize: '16px', color: 'var(--color-text-secondary)',
-                    maxWidth: '500px', margin: '0 auto 40px', lineHeight: 1.7,
+                    fontSize: '14px', color: 'var(--color-text-secondary)',
+                    maxWidth: '500px', margin: '0 auto 36px', lineHeight: 1.7,
+                    fontFamily: 'var(--font-mono)',
                 }}>
                     Interactive dashboards, topic analysis, head-to-head comparisons,
                     and powerful insights for your competitive programming journey.
                 </p>
 
+                {/* CTA Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={() => document.querySelector('.search-input-lg')?.focus()}
+                        className="btn-primary-filled"
+                        style={{ padding: '14px 32px', fontSize: '13px' }}
+                    >
+                        Get Started
+                    </button>
+                    <button
+                        onClick={() => navigate('/compare')}
+                        className="btn-primary"
+                        style={{ padding: '14px 32px', fontSize: '13px' }}
+                    >
+                        ⚔️ Compare Users
+                    </button>
+                </div>
+
                 {/* Search */}
                 <form onSubmit={handleSearch} style={{ maxWidth: '520px', margin: '0 auto' }}>
                     <div style={{
-                        display: 'flex', gap: '12px', padding: '6px',
-                        background: 'rgba(12, 16, 36, 0.6)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-2xl)',
-                        transition: 'all 0.3s ease',
+                        display: 'flex', gap: '8px', padding: '4px',
+                        background: 'var(--color-bg-card)',
+                        border: '1px solid var(--border-color-dim)',
+                        borderRadius: '2px',
                     }}>
                         <input
                             type="text"
@@ -105,15 +143,12 @@ export default function Home() {
                             onChange={(e) => setHandle(e.target.value)}
                             placeholder="Enter Codeforces handle..."
                             className="search-input-lg"
-                            style={{ border: 'none', background: 'transparent', borderRadius: 'var(--radius-xl)' }}
+                            style={{ border: 'none', background: 'transparent', borderRadius: '2px' }}
                         />
                         <button
                             type="submit"
-                            className="btn-primary"
-                            style={{
-                                borderRadius: 'var(--radius-xl)', padding: '14px 28px',
-                                fontSize: '14px', whiteSpace: 'nowrap', flexShrink: 0,
-                            }}
+                            className="btn-primary-filled"
+                            style={{ borderRadius: '2px', padding: '12px 24px', fontSize: '13px', whiteSpace: 'nowrap', flexShrink: 0 }}
                         >
                             Analyze →
                         </button>
@@ -121,20 +156,21 @@ export default function Home() {
                 </form>
 
                 {/* Suggested handles */}
-                <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Try:</span>
+                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>Try:</span>
                     {['tourist', 'Benq', 'jiangly', 'ecnerwala'].map((h) => (
                         <button
                             key={h}
                             onClick={() => { setHandle(h); }}
                             style={{
-                                background: 'rgba(136, 146, 176, 0.06)', border: '1px solid var(--border-color)',
-                                color: 'var(--color-accent-cyan)', cursor: 'pointer', borderRadius: '6px',
-                                fontFamily: 'var(--font-mono)', fontSize: '12px', padding: '3px 10px',
+                                background: 'rgba(0, 255, 65, 0.04)',
+                                border: '1px solid rgba(0, 255, 65, 0.12)',
+                                color: 'var(--color-accent-green)', cursor: 'pointer', borderRadius: '2px',
+                                fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '2px 10px',
                                 transition: 'all 0.2s ease',
                             }}
-                            onMouseEnter={(e) => { e.target.style.borderColor = 'var(--border-color-hover)'; e.target.style.background = 'rgba(0, 212, 255, 0.06)'; }}
-                            onMouseLeave={(e) => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.background = 'rgba(136, 146, 176, 0.06)'; }}
+                            onMouseEnter={(e) => { e.target.style.borderColor = 'rgba(0, 255, 65, 0.3)'; e.target.style.background = 'rgba(0, 255, 65, 0.08)'; }}
+                            onMouseLeave={(e) => { e.target.style.borderColor = 'rgba(0, 255, 65, 0.12)'; e.target.style.background = 'rgba(0, 255, 65, 0.04)'; }}
                         >
                             {h}
                         </button>
@@ -142,95 +178,139 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Terminal Window Mockup */}
+            <section style={{ maxWidth: '800px', margin: '0 auto 32px' }}>
+                <div style={{ background: 'var(--color-bg-card)', border: '1px solid var(--border-color-dim)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid var(--border-color-dim)', background: 'rgba(19, 25, 32, 0.8)' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff5f57' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#febc2e' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#28c840' }} />
+                        <span style={{ marginLeft: '12px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            cf-analyzer ~/analytics
+                        </span>
+                    </div>
+                    <div style={{ padding: '20px', fontSize: '12px', fontFamily: 'var(--font-mono)', lineHeight: 1.8 }}>
+                        <p style={{ color: 'var(--color-accent-green)' }}>$ cf-analyze --init</p>
+                        <p style={{ color: 'var(--color-text-muted)' }}>[✓] Codeforces API connected</p>
+                        <p style={{ color: 'var(--color-text-muted)' }}>[✓] Rating history module loaded</p>
+                        <p style={{ color: 'var(--color-text-muted)' }}>[✓] Topic analysis ready</p>
+                        <p style={{ color: 'var(--color-text-muted)' }}>[✓] Upsolving tracker online</p>
+                        <p style={{ color: 'var(--color-text-muted)' }}>[✓] Heatmap renderer active</p>
+                        <p style={{ color: 'var(--color-accent-green)', marginTop: '8px' }}>
+                            All systems ready. Enter a handle to begin.
+                            <span style={{ animation: 'blink 1s step-end infinite' }}>_</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
             {/* Stats row */}
             <section style={{
                 display: 'flex', justifyContent: 'center', gap: '40px', flexWrap: 'wrap',
-                padding: '32px 0 48px', maxWidth: '700px', margin: '0 auto',
+                padding: '24px 0 40px', maxWidth: '700px', margin: '0 auto',
+                borderTop: '1px solid var(--border-color-dim)',
+                borderBottom: '1px solid var(--border-color-dim)',
             }}>
                 {stats.map((s) => (
                     <div key={s.label} style={{ textAlign: 'center' }}>
                         <p style={{
-                            fontSize: '28px', fontWeight: 800, fontFamily: 'var(--font-mono)',
-                            letterSpacing: '-0.02em',
-                        }} className="gradient-text">
+                            fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-code)',
+                            letterSpacing: '-0.01em', color: 'var(--color-accent-green)',
+                            textShadow: '0 0 15px rgba(0, 255, 65, 0.2)',
+                        }}>
                             {s.value}
                         </p>
-                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>{s.label}</p>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>{s.label}</p>
                     </div>
                 ))}
             </section>
 
             {/* Features Grid */}
-            <section style={{ maxWidth: '960px', margin: '0 auto', padding: '0 0 60px' }}>
-                <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-                    <h2 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '8px' }}>
-                        Everything you need to <span className="gradient-text-green">level up</span>
+            <section style={{ maxWidth: '960px', margin: '40px auto', padding: '0' }}>
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <h2 style={{
+                        fontSize: '24px', fontWeight: 800, letterSpacing: '0.01em', marginBottom: '8px',
+                        fontFamily: 'var(--font-display)', color: 'var(--color-text-bright)',
+                    }}>
+                        Everything you need to <span style={{ color: 'var(--color-accent-green)', textShadow: '0 0 15px rgba(0, 255, 65, 0.3)' }}>level up</span>
                     </h2>
-                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>
+                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '13px', fontFamily: 'var(--font-mono)' }}>
                         Six powerful dashboards built for competitive programmers
                     </p>
                 </div>
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: '16px',
-                }}>
-                    {features.map((f) => (
-                        <div
-                            key={f.title}
-                            className={`glass-card stagger-${f.delay}`}
-                            style={{ cursor: 'default', animationFillMode: 'backwards' }}
-                        >
-                            <div className="accent-line" style={{ background: f.gradient }} />
-
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                    {features.map((f, idx) => (
+                        <div key={f.title} className={`glass-card stagger-${idx + 1}`} style={{ cursor: 'default', animationFillMode: 'backwards', padding: '24px' }}>
+                            <div className="accent-line" style={{ background: f.accent }} />
                             <div style={{
-                                width: '44px', height: '44px', borderRadius: '12px',
-                                background: 'rgba(136, 146, 176, 0.06)',
+                                width: '40px', height: '40px', borderRadius: '2px',
+                                background: 'rgba(0, 255, 65, 0.04)', border: '1px solid rgba(0, 255, 65, 0.1)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '22px', marginBottom: '16px',
+                                fontSize: '20px', marginBottom: '14px',
                             }}>
                                 {f.icon}
                             </div>
-
-                            <h3 style={{
-                                fontSize: '15px', fontWeight: 700, marginBottom: '8px',
-                                letterSpacing: '-0.01em',
-                            }}>
+                            <h3 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px', color: 'var(--color-text-bright)' }}>
                                 {f.title}
                             </h3>
-                            <p style={{
-                                fontSize: '13px', color: 'var(--color-text-secondary)',
-                                lineHeight: 1.65,
-                            }}>
+                            <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.7, fontFamily: 'var(--font-mono)' }}>
                                 {f.desc}
                             </p>
+                            {f.stat && (
+                                <div style={{ display: 'flex', gap: '24px', marginTop: '14px', borderTop: '1px solid var(--border-color-dim)', paddingTop: '12px' }}>
+                                    <div>
+                                        <p style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-code)', color: f.accent }}>{f.stat}</p>
+                                        <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>{f.statLabel}</p>
+                                    </div>
+                                    {f.stat2 && (
+                                        <div>
+                                            <p style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-code)', color: 'var(--color-text-bright)' }}>{f.stat2}</p>
+                                            <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>{f.stat2Label}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* CTA */}
-            <section style={{
-                textAlign: 'center', padding: '40px 0 60px',
-                maxWidth: '560px', margin: '0 auto',
-            }}>
-                <div className="glass-card-static" style={{ padding: '40px', textAlign: 'center' }}>
-                    <div className="accent-line" style={{ background: 'var(--gradient-aurora)' }} />
-                    <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '10px' }}>
-                        Ready to get started?
-                    </h3>
-                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
-                        Enter any Codeforces handle above and unlock your analytics dashboard.
-                    </p>
-                    <button
-                        onClick={() => document.querySelector('.search-input-lg')?.focus()}
-                        className="btn-primary"
-                    >
-                        Get Started →
-                    </button>
-                </div>
+            {/* CTA Section */}
+            <section style={{ textAlign: 'center', padding: '48px 0 60px', maxWidth: '600px', margin: '0 auto' }}>
+                <h2 style={{
+                    fontSize: '26px', fontWeight: 900, marginBottom: '12px',
+                    fontFamily: 'var(--font-display)', color: 'var(--color-text-bright)',
+                }}>
+                    Ready to get started?
+                </h2>
+                <p style={{
+                    color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: '28px',
+                    fontFamily: 'var(--font-mono)', maxWidth: '420px', margin: '0 auto 28px',
+                }}>
+                    Join thousands of competitive programmers using low-latency analytics
+                    to improve their Codeforces performance.
+                </p>
+                <button
+                    onClick={() => document.querySelector('.search-input-lg')?.focus()}
+                    className="btn-primary-filled"
+                    style={{ padding: '14px 36px', fontSize: '13px' }}
+                >
+                    Get Started →
+                </button>
             </section>
+
+            {/* Footer */}
+            <footer style={{ borderTop: '1px solid var(--border-color-dim)', padding: '28px 0', maxWidth: '960px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-accent-green)', textShadow: '0 0 10px rgba(0, 255, 65, 0.2)' }}>
+                        CF Analyzer
+                    </p>
+                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        Built for competitive programmers · Free & open source
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 }
