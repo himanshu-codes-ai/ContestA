@@ -8,52 +8,38 @@ export default function LoadingSpinner({ message = 'Loading data...' }) {
         }}>
             <div style={{
                 background: 'var(--color-bg-card)',
-                border: '1px solid var(--border-color-dim)',
-                borderRadius: '2px',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
                 padding: '24px 32px',
                 minWidth: '300px',
                 textAlign: 'center',
             }}>
+                {/* Spinner */}
                 <div style={{
-                    fontSize: '11px', color: 'var(--color-text-muted)',
-                    fontFamily: 'var(--font-mono)', letterSpacing: '0.04em',
-                    marginBottom: '16px',
-                }}>
-                    Processing...
-                </div>
-
-                {/* Progress bar */}
-                <div style={{
-                    width: '100%', height: '3px', background: 'rgba(0, 255, 65, 0.08)',
-                    borderRadius: '1px', overflow: 'hidden', marginBottom: '16px',
-                }}>
-                    <div style={{
-                        height: '100%', background: 'var(--color-accent-green)',
-                        borderRadius: '1px',
-                        animation: 'loading-progress 2s ease-in-out infinite',
-                        boxShadow: '0 0 10px rgba(0, 255, 65, 0.5)',
-                    }} />
-                </div>
+                    width: '32px', height: '32px', margin: '0 auto 16px',
+                    border: '2px solid var(--border-color)',
+                    borderTopColor: 'var(--color-accent-green)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                }} />
 
                 <p style={{
-                    color: 'var(--color-accent-green)', fontSize: '13px', fontWeight: 600,
-                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--color-text-primary)', fontSize: '14px', fontWeight: 500,
+                    fontFamily: 'var(--font-sans)',
                 }}>
-                    {message}<span style={{ animation: 'blink 1s step-end infinite' }}>_</span>
+                    {message}
                 </p>
                 <p style={{
-                    color: 'var(--color-text-muted)', fontSize: '11px', marginTop: '6px',
-                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--color-text-muted)', fontSize: '12px', marginTop: '4px',
+                    fontFamily: 'var(--font-sans)',
                 }}>
                     This may take a moment
                 </p>
             </div>
 
             <style>{`
-                @keyframes loading-progress {
-                    0% { width: 0%; }
-                    50% { width: 70%; }
-                    100% { width: 100%; }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
                 }
             `}</style>
         </div>

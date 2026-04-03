@@ -6,7 +6,6 @@ import {
 import { fetchSubmissions, fetchRating, fetchUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { compareUsers, getRankInfo } from '../utils/dataProcessing';
-import StatCard from '../components/StatCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
 
@@ -34,20 +33,19 @@ export default function Compare() {
             ]);
             setUser1(u1); setUser2(u2);
                 setComparison(compareUsers(s1, s2, r1, r2));
-                // Removed solution matchups computation
         } catch (err) { setError(err.response?.data?.comment || err.message); }
         finally { setLoading(false); }
     }
 
-    const tooltipStyle = { background: 'rgba(13,17,23,0.97)', border: '1px solid rgba(0,255,65,0.2)', borderRadius: '2px', fontFamily: 'Share Tech Mono', fontSize: '11px' };
+    const tooltipStyle = { background: 'var(--color-bg-elevated)', border: '1px solid var(--border-color-hover)', borderRadius: '6px', fontFamily: 'var(--font-sans)', fontSize: '12px' };
 
     return (
         <div className="page-enter">
-            <div style={{ marginBottom: '20px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-text-bright)' }}>
-                    Compare <span style={{ color: 'var(--color-accent-green)' }}>Users</span>
+            <div style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-sans)', color: 'var(--color-text-bright)', letterSpacing: '-0.02em' }}>
+                    Compare Users
                 </h1>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginTop: '4px', fontFamily: 'var(--font-sans)' }}>
                     Head-to-head comparison of two Codeforces profiles
                 </p>
             </div>
@@ -56,16 +54,16 @@ export default function Compare() {
                 <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: '12px' }}>
                     <div style={{ flex: 1, minWidth: '160px' }}>
-                        <label style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>User 1</label>
+                        <label style={{ fontSize: '12px', fontFamily: 'var(--font-sans)', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px', fontWeight: 500 }}>User 1</label>
                         <input value={handle1} onChange={(e) => setHandle1(e.target.value)} placeholder="First handle..." className="input-field" />
                     </div>
-                    <div style={{ fontSize: '18px', paddingBottom: '10px', color: 'var(--color-accent-green)', fontFamily: 'var(--font-display)', fontWeight: 700 }}>VS</div>
+                    <div style={{ fontSize: '13px', paddingBottom: '10px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>vs</div>
                     <div style={{ flex: 1, minWidth: '160px' }}>
-                        <label style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>User 2</label>
+                        <label style={{ fontSize: '12px', fontFamily: 'var(--font-sans)', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px', fontWeight: 500 }}>User 2</label>
                         <input value={handle2} onChange={(e) => setHandle2(e.target.value)} placeholder="Second handle..." className="input-field" />
                     </div>
-                    <button type="submit" className="btn-primary-filled" disabled={loading} style={{ padding: '12px 24px' }}>
-                        {loading ? '⏳' : '⚡'} Compare
+                    <button type="submit" className="btn-primary-filled" disabled={loading} style={{ padding: '10px 22px' }}>
+                        Compare
                     </button>
                 </div>
             </form>
@@ -84,12 +82,12 @@ export default function Compare() {
                                 <div key={h} className="glass-card" style={{ textAlign: 'center' }}>
                                     <div className="accent-line" style={{ background: accent }} />
                                     <img src={user.titlePhoto || 'https://userpic.codeforces.org/no-title.jpg'} alt={h}
-                                        style={{ width: '56px', height: '56px', borderRadius: '2px', border: `2px solid ${rank.color}`, margin: '0 auto 10px', objectFit: 'cover' }}
+                                        style={{ width: '56px', height: '56px', borderRadius: '50%', border: `2px solid ${rank.color}`, margin: '0 auto 10px', objectFit: 'cover' }}
                                         onError={(e) => { e.target.src = 'https://userpic.codeforces.org/no-title.jpg'; }} />
-                                    <h3 style={{ fontSize: '16px', fontWeight: 800, fontFamily: 'var(--font-display)' }} className={rank.className}>{h}</h3>
-                                    <span className="status-tag" style={{ marginTop: '6px', background: `${rank.color}15`, color: rank.color, borderColor: `${rank.color}30` }}>{rank.rank}</span>
-                                    <p style={{ fontSize: '28px', fontWeight: 900, fontFamily: 'var(--font-code)', color: rank.color, marginTop: '10px', textShadow: `0 0 15px ${rank.color}30` }}>{user.rating || '—'}</p>
-                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '10px', fontSize: '11px', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-sans)' }} className={rank.className}>{h}</h3>
+                                    <span className="status-tag" style={{ marginTop: '6px', background: `${rank.color}12`, color: rank.color, borderColor: `${rank.color}20` }}>{rank.rank}</span>
+                                    <p style={{ fontSize: '28px', fontWeight: 700, fontFamily: 'var(--font-code)', color: rank.color, marginTop: '10px', letterSpacing: '-0.02em' }}>{user.rating || '—'}</p>
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '10px', fontSize: '12px', color: 'var(--color-text-secondary)', fontFamily: 'var(--font-sans)' }}>
                                         <span>Solved: <strong style={{ color: 'var(--color-text-bright)' }}>{stats.totalSolved}</strong></span>
                                         <span>Accuracy: <strong style={{ color: 'var(--color-text-bright)' }}>{stats.acceptRate}%</strong></span>
                                     </div>
@@ -100,14 +98,17 @@ export default function Compare() {
 
                     {/* Radar Chart */}
                     <div className="glass-card" style={{ marginBottom: '20px' }}>
-                        <h2 className="section-title">■ Tag Strength Comparison</h2>
+                        <h2 className="section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            Tag Strength Comparison
+                        </h2>
                         <ResponsiveContainer width="100%" height={320}>
                             <RadarChart data={comparison.radarData}>
-                                <PolarGrid stroke="rgba(0,255,65,0.1)" />
-                                <PolarAngleAxis dataKey="tag" tick={{ fill: '#8b949e', fontSize: 10, fontFamily: 'Share Tech Mono' }} />
-                                <PolarRadiusAxis tick={{ fill: '#484f58', fontSize: 9 }} />
-                                <Radar name={handle1.trim()} dataKey="user1" stroke="#00ff41" fill="#00ff41" fillOpacity={0.15} />
-                                <Radar name={handle2.trim()} dataKey="user2" stroke="#ffb800" fill="#ffb800" fillOpacity={0.15} />
+                                <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                                <PolarAngleAxis dataKey="tag" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'var(--font-sans)' }} />
+                                <PolarRadiusAxis tick={{ fill: '#52525b', fontSize: 10 }} />
+                                <Radar name={handle1.trim()} dataKey="user1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.12} strokeWidth={2} />
+                                <Radar name={handle2.trim()} dataKey="user2" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.12} strokeWidth={2} />
                                 <Legend /><Tooltip contentStyle={tooltipStyle} />
                             </RadarChart>
                         </ResponsiveContainer>
@@ -115,15 +116,18 @@ export default function Compare() {
 
                     {/* Bar Chart */}
                     <div className="glass-card" style={{ marginBottom: '20px' }}>
-                        <h2 className="section-title">■ Difficulty Distribution</h2>
+                        <h2 className="section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            Difficulty Distribution
+                        </h2>
                         <ResponsiveContainer width="100%" height={280}>
                             <BarChart data={comparison.mergedRatingDist}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,255,65,0.06)" />
-                                <XAxis dataKey="rating" stroke="#484f58" tick={{ fontSize: 10, fontFamily: 'Share Tech Mono' }} />
-                                <YAxis stroke="#484f58" tick={{ fontSize: 10, fontFamily: 'Share Tech Mono' }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                                <XAxis dataKey="rating" stroke="#52525b" tick={{ fontSize: 11, fontFamily: 'var(--font-sans)' }} />
+                                <YAxis stroke="#52525b" tick={{ fontSize: 11, fontFamily: 'var(--font-sans)' }} />
                                 <Tooltip contentStyle={tooltipStyle} />
-                                <Bar dataKey="user1" name={handle1.trim()} fill="#00ff41" radius={[2,2,0,0]} />
-                                <Bar dataKey="user2" name={handle2.trim()} fill="#ffb800" radius={[2,2,0,0]} />
+                                <Bar dataKey="user1" name={handle1.trim()} fill="#22c55e" radius={[4,4,0,0]} />
+                                <Bar dataKey="user2" name={handle2.trim()} fill="#f59e0b" radius={[4,4,0,0]} />
                                 <Legend />
                             </BarChart>
                         </ResponsiveContainer>
@@ -133,72 +137,41 @@ export default function Compare() {
                     {comparison.commonContests.length > 0 && (
                         <div className="glass-card-static">
                             <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
-                            <h2 className="section-title">■ Common Contests ({comparison.commonContests.length})</h2>
+                            <h2 className="section-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                Common Contests ({comparison.commonContests.length})
+                            </h2>
                             <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                                <table className="premium-table">
                                     <thead>
-                                        <tr style={{ borderBottom: '1px solid var(--border-color-dim)' }}>
-                                            <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Contest</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-accent-green)', fontWeight: 600, fontSize: '10px' }}>{handle1.trim()}</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-accent-amber)', fontWeight: 600, fontSize: '10px' }}>{handle2.trim()}</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Winner</th>
+                                        <tr>
+                                            <th>Contest</th>
+                                            <th style={{ textAlign: 'center' }}>{handle1.trim()}</th>
+                                            <th style={{ textAlign: 'center' }}>{handle2.trim()}</th>
+                                            <th style={{ textAlign: 'center' }}>Winner</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {comparison.commonContests.slice(0, 20).map((c) => (
-                                            <tr key={c.contestId} style={{ borderBottom: '1px solid rgba(48,54,61,0.3)' }}>
-                                                <td style={{ padding: '8px 12px', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text-secondary)' }}>{c.contestName}</td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>
-                                                    <span style={{ color: 'var(--color-accent-green)' }}>#{c.rank1}</span>
-                                                    <span style={{ marginLeft: '6px', color: c.change1 >= 0 ? 'var(--color-accent-green)' : 'var(--color-accent-red)', fontSize: '10px' }}>{c.change1 >= 0 ? '+' : ''}{c.change1}</span>
+                                            <tr key={c.contestId}>
+                                                <td style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text-secondary)' }}>{c.contestName}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span style={{ color: 'var(--color-accent-green)', fontWeight: 600 }}>#{c.rank1}</span>
+                                                    <span style={{ marginLeft: '6px', color: c.change1 >= 0 ? 'var(--color-accent-green)' : 'var(--color-accent-red)', fontSize: '11px' }}>{c.change1 >= 0 ? '+' : ''}{c.change1}</span>
                                                 </td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>
-                                                    <span style={{ color: 'var(--color-accent-amber)' }}>#{c.rank2}</span>
-                                                    <span style={{ marginLeft: '6px', color: c.change2 >= 0 ? 'var(--color-accent-green)' : 'var(--color-accent-red)', fontSize: '10px' }}>{c.change2 >= 0 ? '+' : ''}{c.change2}</span>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span style={{ color: 'var(--color-accent-amber)', fontWeight: 600 }}>#{c.rank2}</span>
+                                                    <span style={{ marginLeft: '6px', color: c.change2 >= 0 ? 'var(--color-accent-green)' : 'var(--color-accent-red)', fontSize: '11px' }}>{c.change2 >= 0 ? '+' : ''}{c.change2}</span>
                                                 </td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <span className="status-tag" style={{
-                                                        background: c.rank1 < c.rank2 ? 'rgba(0,255,65,0.08)' : c.rank2 < c.rank1 ? 'rgba(255,184,0,0.08)' : 'rgba(139,148,158,0.08)',
+                                                        background: c.rank1 < c.rank2 ? 'rgba(34,197,94,0.08)' : c.rank2 < c.rank1 ? 'rgba(245,158,11,0.08)' : 'rgba(161,161,170,0.08)',
                                                         color: c.rank1 < c.rank2 ? 'var(--color-accent-green)' : c.rank2 < c.rank1 ? 'var(--color-accent-amber)' : 'var(--color-text-secondary)',
-                                                        borderColor: c.rank1 < c.rank2 ? 'rgba(0,255,65,0.2)' : c.rank2 < c.rank1 ? 'rgba(255,184,0,0.2)' : 'rgba(139,148,158,0.2)',
+                                                        borderColor: c.rank1 < c.rank2 ? 'rgba(34,197,94,0.15)' : c.rank2 < c.rank1 ? 'rgba(245,158,11,0.15)' : 'rgba(161,161,170,0.15)',
                                                     }}>
                                                         {c.rank1 < c.rank2 ? handle1.trim() : c.rank2 < c.rank1 ? handle2.trim() : 'Tie'}
                                                     </span>
                                                 </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Solution Matchup */}
-                    {matchups.length > 0 && (
-                        <div className="glass-card-static" style={{ marginTop: 16 }}>
-                            <div className="accent-line" style={{ background: 'var(--gradient-cyan)' }} />
-                            <h2 className="section-title">■ Solution Matchup (common solved problems)</h2>
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-                                    <thead>
-                                        <tr style={{ borderBottom: '1px solid var(--border-color-dim)' }}>
-                                            <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Problem</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-accent-green)', fontWeight: 600, fontSize: '10px' }}>{handle1.trim()} time</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-accent-amber)', fontWeight: 600, fontSize: '10px' }}>{handle2.trim()} time</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Memory (U1 / U2)</th>
-                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Points (U1 / U2)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {matchups.slice(0, 40).map((m) => (
-                                            <tr key={m.problemKey} style={{ borderBottom: '1px solid rgba(48,54,61,0.3)' }}>
-                                                <td style={{ padding: '8px 12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text-secondary)' }}>
-                                                    <a href={`https://codeforces.com/contest/${m.contestId}/problem/${m.index}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-bright)' }}>{`${m.contestId}${m.index} — ${m.name}`}</a>
-                                                </td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{m.user1.time != null ? `${m.user1.time} ms` : '—'}</td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{m.user2.time != null ? `${m.user2.time} ms` : '—'}</td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{(m.user1.memory != null ? `${m.user1.memory}` : '—') + ' / ' + (m.user2.memory != null ? `${m.user2.memory}` : '—')}</td>
-                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{(m.user1.points != null ? `${m.user1.points}` : '—') + ' / ' + (m.user2.points != null ? `${m.user2.points}` : '—')}</td>
                                             </tr>
                                         ))}
                                     </tbody>

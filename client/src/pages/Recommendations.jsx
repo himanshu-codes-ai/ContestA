@@ -7,20 +7,20 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
 
 const SOURCE_LABELS = {
-    upsolve: { text: 'Upsolve', color: '#ff9f43', bg: 'rgba(255, 159, 67, 0.1)', border: 'rgba(255, 159, 67, 0.25)' },
-    weakness: { text: 'Weakness', color: '#ff3333', bg: 'rgba(255, 51, 51, 0.1)', border: 'rgba(255, 51, 51, 0.25)' },
-    sweet_spot: { text: 'Sweet Spot', color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.1)', border: 'rgba(0, 212, 255, 0.25)' },
+    upsolve: { text: 'Upsolve', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.08)', border: 'rgba(245, 158, 11, 0.15)' },
+    weakness: { text: 'Weakness', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.08)', border: 'rgba(239, 68, 68, 0.15)' },
+    sweet_spot: { text: 'Sweet Spot', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.08)', border: 'rgba(6, 182, 212, 0.15)' },
 };
 
 const ratingColor = (r) => {
-    if (!r) return '#484f58';
-    if (r >= 2400) return '#ff3333';
-    if (r >= 2100) return '#ffb800';
-    if (r >= 1900) return '#bc8cff';
-    if (r >= 1600) return '#58a6ff';
-    if (r >= 1400) return '#03a89e';
-    if (r >= 1200) return '#00ff41';
-    return '#808080';
+    if (!r) return '#52525b';
+    if (r >= 2400) return '#ef4444';
+    if (r >= 2100) return '#f59e0b';
+    if (r >= 1900) return '#8b5cf6';
+    if (r >= 1600) return '#3b82f6';
+    if (r >= 1400) return '#06b6d4';
+    if (r >= 1200) return '#22c55e';
+    return '#71717a';
 };
 
 export default function Recommendations() {
@@ -85,8 +85,8 @@ export default function Recommendations() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                         <h1 style={{
-                            fontSize: '22px', fontWeight: 800,
-                            fontFamily: 'var(--font-display)',
+                            fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em',
+                            fontFamily: 'var(--font-sans)',
                             color: 'var(--color-text-bright)',
                         }}>
                             Recommendations
@@ -96,25 +96,20 @@ export default function Recommendations() {
                     <button
                         onClick={loadData}
                         disabled={loading}
-                        style={{
-                            padding: '8px 16px', borderRadius: '2px',
-                            background: 'rgba(0, 255, 65, 0.1)', border: '1px solid rgba(0, 255, 65, 0.2)',
-                            color: 'var(--color-accent-green)', cursor: loading ? 'not-allowed' : 'pointer',
-                            fontFamily: 'var(--font-mono)', fontSize: '12px',
-                            opacity: loading ? 0.5 : 1,
-                        }}
+                        className="btn-secondary"
+                        style={{ padding: '8px 16px', fontSize: '12px' }}
                     >
-                        {loading ? '⏳' : '🔄'} Refresh
+                        {loading ? '⏳' : '↻'} Refresh
                     </button>
                 </div>
                 <p style={{
-                    color: 'var(--color-text-muted)', fontSize: '12px',
-                    marginTop: '6px', fontFamily: 'var(--font-mono)',
+                    color: 'var(--color-text-muted)', fontSize: '14px',
+                    marginTop: '4px', fontFamily: 'var(--font-sans)',
                 }}>
                     Personalized for{' '}
-                    <span className={rankInfo.className} style={{ fontWeight: 700 }}>{finalHandle}</span>
+                    <span className={rankInfo.className} style={{ fontWeight: 600 }}>{finalHandle}</span>
                     {' '}· Rating{' '}
-                    <span style={{ color: rankInfo.color, fontWeight: 700 }}>{userRating}</span>
+                    <span style={{ color: rankInfo.color, fontWeight: 600 }}>{userRating}</span>
                     {' '}· Target zone{' '}
                     <span style={{ color: 'var(--color-accent-cyan)' }}>{userRating + 100}–{userRating + 300}</span>
                 </p>
@@ -125,18 +120,19 @@ export default function Recommendations() {
                 <div className="glass-card-static" style={{ marginBottom: '20px' }}>
                     <div className="accent-line" style={{ background: 'var(--gradient-red)' }} />
                     <h2 className="section-title">
-                        <span style={{ color: 'var(--color-accent-red)' }}>⚠</span> Identified Weaknesses
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-red)" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Identified Weaknesses
                     </h2>
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: '14px',
+                        gap: '12px',
                     }}>
                         {weakTags.map((wt, i) => (
                             <div key={wt.tag} style={{
-                                background: 'rgba(255, 51, 51, 0.04)',
-                                border: '1px solid rgba(255, 51, 51, 0.12)',
-                                borderRadius: '2px',
+                                background: 'rgba(239, 68, 68, 0.04)',
+                                border: '1px solid rgba(239, 68, 68, 0.1)',
+                                borderRadius: 'var(--radius-md)',
                                 padding: '16px',
                                 animation: `fadeInUp 0.4s ease forwards`,
                                 animationDelay: `${i * 0.1}s`,
@@ -144,39 +140,35 @@ export default function Recommendations() {
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                     <span style={{
-                                        fontSize: '12px', fontWeight: 700,
-                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: '13px', fontWeight: 600,
+                                        fontFamily: 'var(--font-sans)',
                                         color: 'var(--color-text-bright)',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.06em',
                                     }}>
                                         {wt.tag}
                                     </span>
                                     <span style={{
-                                        fontSize: '18px', fontWeight: 900,
+                                        fontSize: '18px', fontWeight: 700,
                                         fontFamily: 'var(--font-code)',
-                                        color: wt.accuracy < 30 ? '#ff3333' : wt.accuracy < 50 ? '#ffb800' : '#00ff41',
+                                        color: wt.accuracy < 30 ? '#ef4444' : wt.accuracy < 50 ? '#f59e0b' : '#22c55e',
                                     }}>
                                         {wt.accuracy}%
                                     </span>
                                 </div>
-                                {/* Accuracy bar */}
                                 <div style={{
                                     width: '100%', height: '4px', borderRadius: '2px',
-                                    background: 'rgba(48, 54, 61, 0.6)',
+                                    background: 'rgba(255, 255, 255, 0.06)',
                                 }}>
                                     <div style={{
                                         width: `${wt.accuracy}%`,
                                         height: '100%', borderRadius: '2px',
-                                        background: wt.accuracy < 30 ? '#ff3333' : wt.accuracy < 50 ? '#ffb800' : '#00ff41',
+                                        background: wt.accuracy < 30 ? '#ef4444' : wt.accuracy < 50 ? '#f59e0b' : '#22c55e',
                                         transition: 'width 1s ease',
-                                        boxShadow: `0 0 8px ${wt.accuracy < 30 ? 'rgba(255,51,51,0.4)' : wt.accuracy < 50 ? 'rgba(255,184,0,0.4)' : 'rgba(0,255,65,0.4)'}`,
                                     }} />
                                 </div>
                                 <div style={{
                                     display: 'flex', justifyContent: 'space-between',
-                                    marginTop: '8px', fontSize: '10px',
-                                    fontFamily: 'var(--font-mono)',
+                                    marginTop: '8px', fontSize: '11px',
+                                    fontFamily: 'var(--font-sans)',
                                     color: 'var(--color-text-muted)',
                                 }}>
                                     <span>{wt.solved} solved</span>
@@ -192,49 +184,52 @@ export default function Recommendations() {
             <div className="glass-card-static">
                 <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
                 <h2 className="section-title">
-                    <span style={{ color: 'var(--color-accent-green)' }}>◆</span> Top 5 Recommended Problems
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-green)" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Top 5 Recommended Problems
                 </h2>
 
                 {recommendations.length === 0 ? (
                     <div style={{
                         textAlign: 'center', padding: '60px 20px',
-                        background: 'rgba(255, 51, 51, 0.04)',
-                        border: '1px solid rgba(255, 51, 51, 0.1)',
-                        borderRadius: '2px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
                     }}>
-                        <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.6 }}>🤔</div>
+                        <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.4 }}>
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ margin: '0 auto', display: 'block' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </div>
                         <p style={{
                             color: 'var(--color-text-secondary)', 
-                            fontFamily: 'var(--font-mono)', 
-                            fontSize: '13px',
-                            marginBottom: '12px',
+                            fontFamily: 'var(--font-sans)', 
+                            fontSize: '14px',
+                            marginBottom: '8px',
                         }}>
                             No recommendations available yet.
                         </p>
                         <p style={{
                             color: 'var(--color-text-muted)', 
-                            fontFamily: 'var(--font-mono)', 
-                            fontSize: '11px',
+                            fontFamily: 'var(--font-sans)', 
+                            fontSize: '13px',
                             lineHeight: 1.6,
                             maxWidth: '420px',
                             margin: '0 auto',
                         }}>
-                            Try solving a few more problems or participating in recent contests. Recommendations are based on your recent activity, weak tags, and unsolved contest problems.
+                            Try solving a few more problems or participating in recent contests.
                         </p>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {recommendations.map((rec, i) => {
                             const src = SOURCE_LABELS[rec.source] || SOURCE_LABELS.sweet_spot;
                             return (
                                 <div
                                     key={rec.problemID}
                                     style={{
-                                        background: 'rgba(13, 17, 23, 0.6)',
-                                        border: '1px solid var(--border-color-dim)',
-                                        borderRadius: '2px',
+                                        background: 'rgba(255, 255, 255, 0.02)',
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: 'var(--radius-md)',
                                         padding: '18px 20px',
-                                        transition: 'all 0.25s ease',
+                                        transition: 'all 0.2s ease',
                                         cursor: 'pointer',
                                         position: 'relative',
                                         overflow: 'hidden',
@@ -246,19 +241,16 @@ export default function Recommendations() {
                                     onClick={() => window.open(rec.link, '_blank')}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.borderColor = 'var(--border-color-hover)';
-                                        e.currentTarget.style.boxShadow = 'var(--shadow-glow-green)';
-                                        e.currentTarget.style.background = 'rgba(0, 255, 65, 0.03)';
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = 'var(--border-color-dim)';
-                                        e.currentTarget.style.boxShadow = 'none';
-                                        e.currentTarget.style.background = 'rgba(13, 17, 23, 0.6)';
+                                        e.currentTarget.style.borderColor = 'var(--border-color)';
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
                                     }}
                                 >
-                                    {/* Top line */}
                                     <div style={{
                                         position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-                                        background: `linear-gradient(90deg, transparent, ${src.color}40, transparent)`,
+                                        background: `linear-gradient(90deg, transparent, ${src.color}30, transparent)`,
                                     }} />
 
                                     <div style={{
@@ -266,103 +258,89 @@ export default function Recommendations() {
                                         justifyContent: 'space-between', gap: '16px',
                                         flexWrap: 'wrap',
                                     }}>
-                                        {/* Left: Problem info */}
                                         <div style={{ flex: 1, minWidth: '200px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                                                {/* Index badge */}
                                                 <span style={{
-                                                    width: '28px', height: '28px', borderRadius: '2px',
+                                                    width: '26px', height: '26px', borderRadius: 'var(--radius-sm)',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    background: 'rgba(0, 255, 65, 0.08)',
-                                                    border: '1px solid rgba(0, 255, 65, 0.2)',
-                                                    fontFamily: 'var(--font-code)', fontWeight: 800,
-                                                    fontSize: '12px', color: 'var(--color-accent-green)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    border: '1px solid var(--border-color)',
+                                                    fontFamily: 'var(--font-code)', fontWeight: 700,
+                                                    fontSize: '11px', color: 'var(--color-text-secondary)',
                                                     flexShrink: 0,
                                                 }}>
                                                     {i + 1}
                                                 </span>
                                                 <div>
                                                     <div style={{
-                                                        fontSize: '14px', fontWeight: 700,
-                                                        fontFamily: 'var(--font-mono)',
+                                                        fontSize: '14px', fontWeight: 600,
+                                                        fontFamily: 'var(--font-sans)',
                                                         color: 'var(--color-text-bright)',
-                                                        letterSpacing: '0.02em',
                                                     }}>
                                                         {rec.name}
                                                     </div>
                                                     <span style={{
-                                                        fontSize: '10px', fontFamily: 'var(--font-mono)',
+                                                        fontSize: '11px', fontFamily: 'var(--font-mono)',
                                                         color: 'var(--color-text-muted)',
-                                                        letterSpacing: '0.04em',
                                                     }}>
                                                         {rec.problemID}
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            {/* Tags */}
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                                                 {rec.tags.slice(0, 5).map((tag) => (
                                                     <span key={tag} className="tag-chip">{tag}</span>
                                                 ))}
                                             </div>
 
-                                            {/* Reason */}
                                             <div style={{
-                                                marginTop: '10px', fontSize: '11px',
-                                                fontFamily: 'var(--font-mono)',
+                                                marginTop: '10px', fontSize: '12px',
+                                                fontFamily: 'var(--font-sans)',
                                                 color: 'var(--color-text-secondary)',
-                                                fontStyle: 'italic',
-                                                letterSpacing: '0.02em',
                                                 lineHeight: 1.5,
                                             }}>
-                                                💡 {rec.reason}
+                                                {rec.reason}
                                             </div>
 
-                                            {/* Why field */}
                                             {rec.why && (
                                                 <div style={{
-                                                    marginTop: '8px', fontSize: '10px',
-                                                    fontFamily: 'var(--font-mono)',
+                                                    marginTop: '6px', fontSize: '11px',
+                                                    fontFamily: 'var(--font-sans)',
                                                     color: 'var(--color-text-muted)',
                                                     lineHeight: 1.6,
-                                                    borderLeft: '2px solid rgba(0, 255, 65, 0.2)',
+                                                    borderLeft: '2px solid rgba(255, 255, 255, 0.06)',
                                                     paddingLeft: '10px',
-                                                    opacity: 0.85,
                                                 }}>
                                                     {rec.why}
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* Right: Meta info */}
                                         <div style={{
                                             display: 'flex', flexDirection: 'column',
                                             alignItems: 'flex-end', gap: '8px',
                                             flexShrink: 0,
                                         }}>
-                                            {/* Rating badge */}
                                             {rec.rating && (
                                                 <span style={{
-                                                    padding: '4px 12px', borderRadius: '2px',
-                                                    fontSize: '13px', fontWeight: 800,
+                                                    padding: '4px 12px', borderRadius: 'var(--radius-full)',
+                                                    fontSize: '13px', fontWeight: 700,
                                                     fontFamily: 'var(--font-code)',
                                                     color: ratingColor(rec.rating),
                                                     background: `${ratingColor(rec.rating)}10`,
-                                                    border: `1px solid ${ratingColor(rec.rating)}30`,
-                                                    textShadow: `0 0 10px ${ratingColor(rec.rating)}40`,
+                                                    border: `1px solid ${ratingColor(rec.rating)}20`,
                                                 }}>
                                                     {rec.rating}
                                                 </span>
                                             )}
 
-                                            {/* Source label */}
                                             <span style={{
-                                                padding: '3px 10px', borderRadius: '2px',
-                                                fontSize: '9px', fontWeight: 600,
-                                                fontFamily: 'var(--font-mono)',
+                                                padding: '3px 10px', borderRadius: 'var(--radius-full)',
+                                                fontSize: '10px', fontWeight: 500,
+                                                fontFamily: 'var(--font-sans)',
                                                 textTransform: 'uppercase',
-                                                letterSpacing: '0.08em',
+                                                letterSpacing: '0.04em',
                                                 color: src.color,
                                                 background: src.bg,
                                                 border: `1px solid ${src.border}`,
@@ -370,11 +348,9 @@ export default function Recommendations() {
                                                 {src.text}
                                             </span>
 
-                                            {/* Solved count */}
                                             <span style={{
-                                                fontSize: '10px', fontFamily: 'var(--font-mono)',
+                                                fontSize: '11px', fontFamily: 'var(--font-sans)',
                                                 color: 'var(--color-text-muted)',
-                                                letterSpacing: '0.04em',
                                             }}>
                                                 {rec.solvedCount?.toLocaleString() || '?'} solved
                                             </span>
