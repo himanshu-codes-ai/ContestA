@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const features = [
@@ -56,9 +56,7 @@ const stats = [
 
 export default function Home() {
     const navigate = useNavigate();
-    const { user, loading, profile } = useAuth();
-
-    if (!loading && !user) return <Navigate to="/login" replace />;
+    const { user, loading } = useAuth();
 
     return (
         <div className="page-enter">

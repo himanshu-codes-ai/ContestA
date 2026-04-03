@@ -1,9 +1,27 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, database } from '../lib/firebaseClient';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, updateProfile as fbUpdateProfile } from 'firebase/auth';
-import { ref as dbRef, get, set, update } from 'firebase/database';
 
 const AuthContext = createContext();
+
+const hasFirebase = auth && database;
+
+let fbOnAuthStateChanged, fbCreateUser, fbSignIn, fbSignOut, fbUpdateProfile, fbDbRef, fbGet, fbSet, fbUpdate;
+
+if (hasFirebase) {
+    import('firebase/auth').then((fa) => {
+        fbOnAuthStateChanged = fa.onAuthStateChanged;
+        fbCreateUser = fa.createUserWithEmailAndPassword;
+        fbSignIn = fa.signInWithEmailAndPassword;
+        fbSignOut = fa.signOut;
+        fbUpdateProfile = fa.updateProfile;
+    });
+    import('firebase/database').then((fd) => {
+        fbDbRef = fd.ref;
+        fbGet = fd.get;
+        fbSet = fd.set;
+        fbUpdate = fd.update;
+    });
+}
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -12,14 +30,17 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+        if (!hasFirebase || !fbOnAuthStateChanged) {
+            setLoading(false);
+            return;
+        }
+        const unsubscribe = fbOnAuthStateChanged(auth, async (fbUser) => {
             setSession(fbUser ?? null);
             setUser(fbUser ?? null);
             if (fbUser) {
-                // ensure profile exists in Realtime Database
                 try {
-                    const profileRef = dbRef(database, `developer_profiles/${fbUser.uid}`);
-                    const snap = await get(profileRef);
+                    const profileRef = fbDbRef(database, `developer_profiles/${fbUser.uid}`);
+                    const snap = await fbGet(profileRef);
                     if (!snap.exists()) {
                         const initial = {
                             id: fbUser.uid,
@@ -32,7 +53,7 @@ export function AuthProvider({ children }) {
                             created_at: Date.now(),
                             updated_at: Date.now(),
                         };
-                        await set(profileRef, initial);
+                        await fbSet(profileRef, initial);
                         setProfile(initial);
                     } else {
                         setProfile({ ...(snap.val()), id: fbUser.uid });
@@ -51,16 +72,15 @@ export function AuthProvider({ children }) {
     }, []);
 
     const signUp = async ({ email, password, profileData = {} }) => {
+        if (!hasFirebase) return { data: null, error: new Error('Firebase not configured') };
         try {
-            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            const cred = await fbCreateUser(auth, email, password);
             const fbUser = cred.user;
-            // optionally set displayName
             if (profileData.full_name) {
                 try { await fbUpdateProfile(fbUser, { displayName: profileData.full_name }); } catch (e) { /* ignore */ }
             }
-            // create profile in Realtime Database
             try {
-                const profileRef = dbRef(database, `developer_profiles/${fbUser.uid}`);
+                const profileRef = fbDbRef(database, `developer_profiles/${fbUser.uid}`);
                 const payload = {
                     id: fbUser.uid,
                     full_name: profileData.full_name || fbUser.displayName || null,
@@ -72,7 +92,7 @@ export function AuthProvider({ children }) {
                     created_at: Date.now(),
                     updated_at: Date.now(),
                 };
-                await set(profileRef, payload);
+                await fbSet(profileRef, payload);
                 setProfile(payload);
             } catch (err) {
                 console.warn('create profile doc error', err);
@@ -84,8 +104,9 @@ export function AuthProvider({ children }) {
     };
 
     const signIn = async ({ email, password }) => {
+        if (!hasFirebase) return { data: null, error: new Error('Firebase not configured') };
         try {
-            const cred = await signInWithEmailAndPassword(auth, email, password);
+            const cred = await fbSignIn(auth, email, password);
             return { data: cred.user, error: null };
         } catch (err) {
             return { data: null, error: err };
@@ -93,6 +114,7 @@ export function AuthProvider({ children }) {
     };
 
     const signOut = async () => {
+        if (!hasFirebase) return;
         await fbSignOut(auth);
         setUser(null);
         setSession(null);
@@ -102,8 +124,8 @@ export function AuthProvider({ children }) {
     const refreshProfile = async () => {
         if (!session) return;
         try {
-            const profileRef = dbRef(database, `developer_profiles/${session.uid}`);
-            const snap = await get(profileRef);
+            const profileRef = fbDbRef(database, `developer_profiles/${session.uid}`);
+            const snap = await fbGet(profileRef);
             const p = snap.exists() ? { ...(snap.val()), id: session.uid } : null;
             setProfile(p);
             return p;
@@ -117,9 +139,9 @@ export function AuthProvider({ children }) {
     const updateProfile = async (updates = {}) => {
         if (!session) throw new Error('Not authenticated');
         try {
-            const profileRef = dbRef(database, `developer_profiles/${session.uid}`);
+            const profileRef = fbDbRef(database, `developer_profiles/${session.uid}`);
             const payload = { ...updates, updated_at: Date.now() };
-            await update(profileRef, payload);
+            await fbUpdate(profileRef, payload);
             return await refreshProfile();
         } catch (err) {
             console.warn('updateProfile error', err);
