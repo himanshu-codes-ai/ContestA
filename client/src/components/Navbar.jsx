@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
     { path: '/', label: 'Home', icon: '⌂', exact: true },
     { path: '/user', label: 'Dashboard', icon: '◈' },
+    { path: '/search', label: 'Find Profile', icon: '🔎' },
     { path: '/topics', label: 'Topics', icon: '◉' },
     { path: '/upsolving', label: 'Upsolving', icon: '◎' },
     { path: '/heatmap', label: 'Heatmap', icon: '▣' },
@@ -12,15 +14,19 @@ const navItems = [
 ];
 
 export default function Navbar() {
+    const { user, profile } = useAuth();
     const [handle, setHandle] = useState('');
+    React.useEffect(() => { if (profile?.cf_handle) setHandle(profile.cf_handle); }, [profile]);
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleSearch = (e) => {
         e.preventDefault();
         if (handle.trim()) {
-            navigate(`/user/${handle.trim()}`);
-            setHandle('');
+            const h = handle.trim();
+            navigate(`/user/${h}`);
+            // don't clear if this is the user's saved handle
+            if (profile?.cf_handle !== h) setHandle('');
             setMobileOpen(false);
         }
     };
@@ -102,31 +108,7 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {/* Search */}
-                <div style={{ padding: '14px 16px' }}>
-                    <form onSubmit={handleSearch}>
-                        <div style={{ position: 'relative' }}>
-                            <input
-                                type="text"
-                                value={handle}
-                                onChange={(e) => setHandle(e.target.value)}
-                                placeholder="Search handle..."
-                                className="input-field"
-                                style={{ fontSize: '12px', padding: '9px 32px 9px 12px', borderRadius: '2px' }}
-                            />
-                            <button
-                                type="submit"
-                                style={{
-                                    position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
-                                    background: 'none', border: 'none', cursor: 'pointer',
-                                    color: 'var(--color-text-muted)', fontSize: '12px',
-                                }}
-                            >
-                                🔍
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                {/* Search removed - comparison only available on Compare page */}
 
                 {/* Nav Items */}
                 <div style={{ flex: 1, padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -172,12 +154,24 @@ export default function Navbar() {
                 {/* Footer */}
                 <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border-color-dim)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            <span>⚙</span> Settings
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            <span>⟲</span> Session
-                        </div>
+                        {user ? (
+                            <>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                                    <span>●</span>
+                                    <NavLink to="/profile" onClick={() => setMobileOpen(false)} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>
+                                        {profile?.full_name || user.user_metadata?.full_name || user.email}
+                                    </NavLink>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
+                                    <span>◉</span>
+                                    <NavLink to="/profile" onClick={() => setMobileOpen(false)} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Profile</NavLink>
+                                </div>
+                            </>
+                        ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button className="btn-ghost" onClick={() => { navigate('/login'); setMobileOpen(false); }}>Login</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </nav>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { fetchSubmissions } from '../services/api';
 import { getTagDistribution, getRatingDistribution } from '../utils/dataProcessing';
@@ -21,35 +22,36 @@ const ratingColor = (r) => {
 export default function TopicAnalysis() {
     const { handle } = useParams();
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [inputHandle, setInputHandle] = useState('');
     const [submissions, setSubmissions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    useEffect(() => { if (handle) loadData(); }, [handle]);
+    const finalHandle = handle || profile?.cf_handle;
+    useEffect(() => { if (finalHandle) loadData(); }, [finalHandle]);
 
     async function loadData() {
         setLoading(true); setError(null);
-        try { setSubmissions(await fetchSubmissions(handle)); }
+        try { setSubmissions(await fetchSubmissions(finalHandle)); }
         catch (err) { setError(err.response?.data?.comment || err.message); }
         finally { setLoading(false); }
     }
 
-    if (!handle) {
+    if (!finalHandle) {
         return (
             <div className="prompt-state page-enter">
                 <div style={{ fontSize: '40px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite', color: 'var(--color-accent-green)' }}>◉</div>
                 <h2>Topic Analysis</h2>
-                <p>Discover your tag strengths and identify rating gaps</p>
-                <form onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/topics/${inputHandle.trim()}`); }} style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '400px' }}>
-                    <input value={inputHandle} onChange={(e) => setInputHandle(e.target.value)} placeholder="Codeforces handle..." className="input-field" />
-                    <button type="submit" className="btn-primary">Analyze →</button>
-                </form>
+                <p>Set your Codeforces handle in your profile to view topic analysis.</p>
+                <div style={{ marginTop: 12 }}>
+                    <button className="btn-primary" onClick={() => navigate('/profile')}>Go to Profile</button>
+                </div>
             </div>
         );
     }
 
-    if (loading) return <LoadingSpinner message={`Analyzing ${handle}'s topics...`} />;
+    if (loading) return <LoadingSpinner message={`Analyzing ${finalHandle}'s topics...`} />;
     if (error) return <ErrorState message={error} onRetry={loadData} />;
 
     const tagData = getTagDistribution(submissions);
@@ -65,7 +67,7 @@ export default function TopicAnalysis() {
                     <span className="status-tag">Live</span>
                 </div>
                 <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
-                    Analyzing {submissions.length} submissions for <span style={{ color: 'var(--color-accent-green)' }}>{handle}</span>
+                    Analyzing {submissions.length} submissions for <span style={{ color: 'var(--color-accent-green)' }}>{finalHandle}</span>
                 </p>
             </div>
 

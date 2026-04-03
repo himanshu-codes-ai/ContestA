@@ -80,13 +80,21 @@ function getSweetSpotProblems(allProblems, statsMap, userRating, solvedSet) {
 // ──────────────────────────────────────────────
 // 2. Tag-Based Weakness Identification (recent data only)
 // ──────────────────────────────────────────────
-function getWeakTags(allSubmissions) {
-    const recentSubmissions = getRecentSubmissions(allSubmissions);
+function getWeakTags(submissions, ratingHistory = []) {
+    // Track per-tag: unique problems solved vs unique problems attempted
+    const tagStats = {}; // tag -> { solved: Set, attempted: Set }
 
-    const tagStats = {};
+    // Recent-slice filter: keep subs from last 90 days OR from last 15 contests
+    const nowSec = Math.floor(Date.now() / 1000);
+    const cutoff90d = nowSec - (90 * 24 * 60 * 60);
+    const recentContests = new Set((ratingHistory || []).slice(-15).map(r => r.contestId));
 
-    recentSubmissions.forEach((sub) => {
-        const key = `${sub.problem.contestId}-${sub.problem.index}`;
+    submissions.forEach((sub) => {
+        const ts = sub.creationTimeSeconds || 0;
+        const cid = sub.problem.contestId;
+        if (!(ts >= cutoff90d || recentContests.has(cid))) return;
+
+        const key = `${cid}-${sub.problem.index}`;
         (sub.problem.tags || []).forEach((tag) => {
             if (!tagStats[tag]) {
                 tagStats[tag] = { solved: new Set(), attempted: new Set() };
@@ -98,6 +106,7 @@ function getWeakTags(allSubmissions) {
         });
     });
 
+    // Compute accuracy ratio, require a small minimum (3) of recent attempts
     const tagAccuracy = Object.entries(tagStats)
         .map(([tag, data]) => ({
             tag,
@@ -107,7 +116,7 @@ function getWeakTags(allSubmissions) {
                 ? Math.round((data.solved.size / data.attempted.size) * 100)
                 : 0,
         }))
-        .filter((t) => t.attempted >= 5)
+        .filter((t) => t.attempted >= 3)
         .sort((a, b) => a.accuracy - b.accuracy);
 
     return tagAccuracy.slice(0, 3);
@@ -116,35 +125,21 @@ function getWeakTags(allSubmissions) {
 // ──────────────────────────────────────────────
 // 3. Upsolve Priority (failed problems + +1 Challenge)
 // ──────────────────────────────────────────────
-function getUpsolveSuggestions(submissions, allProblems, statsMap, solvedSet) {
+function getUpsolveSuggestions(ratingHistory, submissions, solvedSet, allProblems, statsMap) {
     const suggestions = [];
     if (!submissions || submissions.length === 0) return suggestions;
 
-    const recentSubmissions = getRecentSubmissions(submissions);
-
-    // Gather unique recent contest IDs from submissions
-    const recentContestIds = [...new Set(recentSubmissions.map((s) => s.contestId))];
-
-    // Build per-contest maps from submissions
-    const contestSubmissions = {};
-    recentSubmissions.forEach((sub) => {
-        const cid = sub.contestId;
-        if (!contestSubmissions[cid]) contestSubmissions[cid] = [];
-        contestSubmissions[cid].push(sub);
+    // Build attempted set (include failed verdicts)
+    const attemptedSet = new Set();
+    submissions.forEach((sub) => {
+        const key = `${sub.problem.contestId}-${sub.problem.index}`;
+        attemptedSet.add(key);
     });
 
-    const failedVerdicts = new Set(['WRONG_ANSWER', 'TIME_LIMIT_EXCEEDED', 'MEMORY_LIMIT_EXCEEDED',
-        'RUNTIME_ERROR', 'OUTPUT_LIMIT_EXCEEDED', 'PRESENTATION_ERROR', 'COMPILATION_ERROR']);
+    const recentContests = (ratingHistory || []).slice(-15);
 
-    for (const contestId of recentContestIds) {
-        const subs = contestSubmissions[contestId];
-
-        // All problems the user made submissions to in this contest
-        const attemptedKeys = new Set(subs.map((s) => `${s.problem.contestId}-${s.problem.index}`));
-        const solvedKeys = new Set(subs.filter((s) => s.verdict === 'OK').map((s) => `${s.problem.contestId}-${s.problem.index}`));
-
-        // Failed problems: attempted but verdict was not OK
-        const failedKeys = new Set(subs.filter((s) => failedVerdicts.has(s.verdict)).map((s) => `${s.problem.contestId}-${s.problem.index}`));
+    for (const contest of recentContests) {
+        const contestId = contest.contestId;
 
         // Find contest problems from allProblems
         const contestProblems = allProblems
@@ -153,18 +148,18 @@ function getUpsolveSuggestions(submissions, allProblems, statsMap, solvedSet) {
 
         if (contestProblems.length === 0) continue;
 
-        const maxSolved = Math.max(
-            ...contestProblems.map((cp) => statsMap.get(`${cp.contestId}-${cp.index}`) || 0)
-        );
-
-        // Add all failed problems as upsolve suggestions
+        // 1) Add all problems from contest where user attempted but did not solve (failed verdicts)
         for (const p of contestProblems) {
             const key = `${p.contestId}-${p.index}`;
-            if (!failedKeys.has(key)) continue;
+            if (solvedSet.has(key)) continue; // already solved
+            if (!attemptedSet.has(key)) continue; // user didn't try
 
             const solvedCount = statsMap.get(key) || 0;
+            const maxSolved = Math.max(
+                ...contestProblems.map((cp) => statsMap.get(`${cp.contestId}-${cp.index}`) || 0)
+            );
             const solveRate = maxSolved > 0 ? solvedCount / maxSolved : 0;
-
+            
             suggestions.push({
                 problemID: `${p.contestId}${p.index}`,
                 contestId: p.contestId,
@@ -174,42 +169,41 @@ function getUpsolveSuggestions(submissions, allProblems, statsMap, solvedSet) {
                 tags: p.tags || [],
                 solvedCount,
                 solveRate: Math.round(solveRate * 100),
-                contestId: p.contestId,
+                contestName: contest.contestName,
                 link: `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`,
-                upsolveType: 'failed',
+                challenge: false
             });
         }
 
-        // +1 Challenge: for each solved problem, add the next sequential unsolved/unattempted problem
+        // 2) +1 Challenge: pick one sequential problem after user's solved problems that they did not attempt
         const solvedIndices = contestProblems
-            .filter((p) => solvedKeys.has(`${p.contestId}-${p.index}`))
-            .map((p) => getProblemIndexOrder(p.index));
-
-        for (const solvedOrder of solvedIndices) {
-            // Find the next problem after this solved one that the user did NOT attempt
-            const nextProblem = contestProblems.find((p) => {
-                const order = getProblemIndexOrder(p.index);
+            .map((p) => p.index)
+            .filter((idx) => solvedSet.has(`${contestId}-${idx}`));
+        if (solvedIndices.length > 0) {
+            let lastSolvedPos = -1;
+            for (let i = 0; i < contestProblems.length; i++) {
+                if (solvedSet.has(`${contestId}-${contestProblems[i].index}`)) lastSolvedPos = i;
+            }
+            for (let j = lastSolvedPos + 1; j < contestProblems.length; j++) {
+                const p = contestProblems[j];
                 const key = `${p.contestId}-${p.index}`;
-                return order > solvedOrder && !attemptedKeys.has(key);
-            });
-
-            if (nextProblem) {
-                const key = `${nextProblem.contestId}-${nextProblem.index}`;
-                const solvedCount = statsMap.get(key) || 0;
-                const solveRate = maxSolved > 0 ? solvedCount / maxSolved : 0;
-
-                suggestions.push({
-                    problemID: `${nextProblem.contestId}${nextProblem.index}`,
-                    contestId: nextProblem.contestId,
-                    index: nextProblem.index,
-                    name: nextProblem.name,
-                    rating: nextProblem.rating || null,
-                    tags: nextProblem.tags || [],
-                    solvedCount,
-                    solveRate: Math.round(solveRate * 100),
-                    link: `https://codeforces.com/contest/${nextProblem.contestId}/problem/${nextProblem.index}`,
-                    upsolveType: 'challenge',
-                });
+                if (!attemptedSet.has(key) && !solvedSet.has(key)) {
+                    const solvedCount = statsMap.get(key) || 0;
+                    suggestions.push({
+                        problemID: `${p.contestId}${p.index}`,
+                        contestId: p.contestId,
+                        index: p.index,
+                        name: p.name,
+                        rating: p.rating || null,
+                        tags: p.tags || [],
+                        solvedCount,
+                        solveRate: 0,
+                        contestName: contest.contestName,
+                        link: `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`,
+                        challenge: true,
+                    });
+                    break; // only one +1 challenge per contest
+                }
             }
         }
     }
@@ -240,10 +234,12 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
 
     const sweetSpot = getSweetSpotProblems(allProblems, statsMap, effectiveRating, solvedSet);
 
-    const weakTags = getWeakTags(submissions);
+    // Heuristic 2: Weak tags (use recent submissions/ratingHistory)
+    const weakTags = getWeakTags(submissions, ratingHistory);
     const weakTagNames = new Set(weakTags.map((t) => t.tag));
 
-    const upsolveSuggestions = getUpsolveSuggestions(submissions, allProblems, statsMap, solvedSet);
+    // Heuristic 3: Upsolve suggestions
+    const upsolveSuggestions = getUpsolveSuggestions(ratingHistory, submissions, solvedSet, allProblems, statsMap);
 
     const seen = new Set();
     const recommendations = [];
@@ -252,13 +248,20 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         const id = `${p.contestId}-${p.index}`;
         if (seen.has(id)) continue;
         seen.add(id);
-        const reason = p.upsolveType === 'challenge'
-            ? `+1 Challenge: next problem after one you solved`
-            : `Failed in contest ${p.contestId} — ${p.solveRate}% of participants solved it`;
+        
+        // Build friendly reason/why fields
+        const solvedPercent = p.solveRate || 0;
+        const baseReason = p.challenge ? `+1 Challenge from "${p.contestName}"` : `Unsolved from "${p.contestName}"`;
+        const reason = solvedPercent > 0 ? `${baseReason} — ${solvedPercent}% of participants solved it` : baseReason;
+        const why = p.challenge
+            ? `One sequential problem after your last solved problem in this contest.`
+            : `You attempted this problem in the contest but did not solve it (TLE/WA/etc.). Reattempting will close gaps.`;
+
         recommendations.push({
             ...p,
             source: 'upsolve',
             reason,
+            why,
         });
     }
 
@@ -266,7 +269,10 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         .filter((p) => {
             const id = `${p.contestId}-${p.index}`;
             if (seen.has(id)) return false;
-            return p.tags.some((t) => weakTagNames.has(t));
+            const isTagMatch = p.tags.some((t) => weakTagNames.has(t));
+            const cidNum = Number(p.contestId);
+            const isRecentRound = !Number.isNaN(cidNum) ? cidNum >= 1800 : true;
+            return isTagMatch && isRecentRound;
         })
         .sort((a, b) => b.solvedCount - a.solvedCount);
 
@@ -276,10 +282,15 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         seen.add(id);
         const matchedTag = p.tags.find((t) => weakTagNames.has(t));
         const tagInfo = weakTags.find((wt) => wt.tag === matchedTag);
+        const acc = tagInfo ? tagInfo.accuracy : '?';
+        const attempts = tagInfo ? tagInfo.attempted : '?';
+        const reason = `Targets your weak tag: ${matchedTag}`;
+        const why = `Recent accuracy ${acc}% over ${attempts} recent attempts for ${matchedTag}. Focused practice improves this.`;
         recommendations.push({
             ...p,
             source: 'weakness',
-            reason: `Improves your ${tagInfo ? tagInfo.accuracy : '?'}% accuracy in ${matchedTag}`,
+            reason,
+            why,
         });
     }
 
@@ -291,10 +302,13 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         if (recommendations.length >= 5) break;
         const id = `${p.contestId}-${p.index}`;
         seen.add(id);
+        const reason = `Classic problem in your growth zone (${effectiveRating + 100}–${effectiveRating + 300} rated)`;
+        const why = `Fits your rating progression; solving helps bridge to the next tier.`;
         recommendations.push({
             ...p,
             source: 'sweet_spot',
-            reason: `Recent problem in your growth zone (${effectiveRating + 100}–${effectiveRating + 300} rated)`,
+            reason,
+            why,
         });
     }
 
