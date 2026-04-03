@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+reviews:
+  profile: "assertive" # Gives more thorough/strict reviews. Can change to 'chill' for lighter reviews.
+  auto_review:
+    enabled: true
+    drafts: false # Won't auto-review PRs still in Draft state.
+  high_level_summary: true
+  poem: true
+  path_filters:
+    # Exclude directories that shouldn't be reviewed by AI
+    - "!node_modules/**"
+    - "!dist/**"
+    - "!build/**"
+    - "!.git/**"
+    - "!client/node_modules/**"
+    - "!server/node_modules/**"
