@@ -2,19 +2,61 @@
  * Rule-Based Problem Recommendation Engine
  * 
  * Three heuristics, zero AI/ML:
- *  1. Sweet Spot Filter  — problems in [rating+100, rating+300]
- *  2. Tag-Based Weakness  — 3 tags with lowest accuracy ratio
- *  3. Upsolve Priority    — first unsolved from last 3 contests (≥40% solve rate)
+ *  1. Sweet Spot Filter  — problems in [rating+100, rating+300], recent rounds only (contestId > 1800)
+ *  2. Tag-Based Weakness  — 3 tags with lowest accuracy from recent data (last 90 days / 15 contests)
+ *  3. Upsolve Priority    — all failed problems + "+1 Challenge" from recent contests
  */
 
+const RECENT_CONTEST_ID_THRESHOLD = 1800;
+const RECENT_DAYS_WINDOW = 90;
+const RECENT_CONTESTS_WINDOW = 15;
+
 // ──────────────────────────────────────────────
-// 1. Sweet Spot Filter
+// Helpers
+// ──────────────────────────────────────────────
+function getRecentSubmissions(submissions) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - RECENT_DAYS_WINDOW);
+    const cutoffTime = Math.floor(cutoffDate.getTime() / 1000);
+
+    const uniqueContestIds = [...new Set(submissions.map((s) => s.contestId))];
+    const recentContestIds = new Set(uniqueContestIds.slice(-RECENT_CONTESTS_WINDOW));
+
+    return submissions.filter((sub) => {
+        const isRecentByDate = sub.creationTimeSeconds >= cutoffTime;
+        const isRecentByContest = recentContestIds.has(sub.contestId);
+        return isRecentByDate || isRecentByContest;
+    });
+}
+
+function getRecentProblems(allProblems) {
+    return allProblems.filter((p) => p.contestId > RECENT_CONTEST_ID_THRESHOLD);
+}
+
+function getProblemIndexOrder(index) {
+    const letterMatch = index.match(/^([A-Z]+)(\d*)$/);
+    if (letterMatch) {
+        const letters = letterMatch[1];
+        const num = letterMatch[2] ? parseInt(letterMatch[2], 10) : 0;
+        let val = 0;
+        for (let i = 0; i < letters.length; i++) {
+            val = val * 26 + (letters.charCodeAt(i) - 64);
+        }
+        return val + num / 100;
+    }
+    return parseInt(index, 10) || 0;
+}
+
+// ──────────────────────────────────────────────
+// 1. Sweet Spot Filter (recent rounds only)
 // ──────────────────────────────────────────────
 function getSweetSpotProblems(allProblems, statsMap, userRating, solvedSet) {
     const lo = userRating + 100;
     const hi = userRating + 300;
 
-    return allProblems
+    const recentProblems = getRecentProblems(allProblems);
+
+    return recentProblems
         .filter((p) => {
             if (!p.rating || p.rating < lo || p.rating > hi) return false;
             const key = `${p.contestId}-${p.index}`;
@@ -36,13 +78,14 @@ function getSweetSpotProblems(allProblems, statsMap, userRating, solvedSet) {
 }
 
 // ──────────────────────────────────────────────
-// 2. Tag-Based Weakness Identification
+// 2. Tag-Based Weakness Identification (recent data only)
 // ──────────────────────────────────────────────
-function getWeakTags(submissions) {
-    // Track per-tag: unique problems solved vs unique problems attempted
-    const tagStats = {}; // tag -> { solved: Set, attempted: Set }
+function getWeakTags(allSubmissions) {
+    const recentSubmissions = getRecentSubmissions(allSubmissions);
 
-    submissions.forEach((sub) => {
+    const tagStats = {};
+
+    recentSubmissions.forEach((sub) => {
         const key = `${sub.problem.contestId}-${sub.problem.index}`;
         (sub.problem.tags || []).forEach((tag) => {
             if (!tagStats[tag]) {
@@ -55,7 +98,6 @@ function getWeakTags(submissions) {
         });
     });
 
-    // Compute accuracy ratio, filter min 5 attempts, sort ascending
     const tagAccuracy = Object.entries(tagStats)
         .map(([tag, data]) => ({
             tag,
@@ -72,55 +114,106 @@ function getWeakTags(submissions) {
 }
 
 // ──────────────────────────────────────────────
-// 3. Upsolve Priority
+// 3. Upsolve Priority (failed problems + +1 Challenge)
 // ──────────────────────────────────────────────
-function getUpsolveSuggestions(ratingHistory, solvedSet, allProblems, statsMap) {
+function getUpsolveSuggestions(submissions, allProblems, statsMap, solvedSet) {
     const suggestions = [];
-    if (!ratingHistory || ratingHistory.length === 0) return suggestions;
+    if (!submissions || submissions.length === 0) return suggestions;
 
-    // Last 3 contests
-    const recentContests = ratingHistory.slice(-3).reverse();
+    const recentSubmissions = getRecentSubmissions(submissions);
 
-    for (const contest of recentContests) {
-        const contestId = contest.contestId;
+    // Gather unique recent contest IDs from submissions
+    const recentContestIds = [...new Set(recentSubmissions.map((s) => s.contestId))];
 
-        // Find problems from this contest, sorted by index
+    // Build per-contest maps from submissions
+    const contestSubmissions = {};
+    recentSubmissions.forEach((sub) => {
+        const cid = sub.contestId;
+        if (!contestSubmissions[cid]) contestSubmissions[cid] = [];
+        contestSubmissions[cid].push(sub);
+    });
+
+    const failedVerdicts = new Set(['WRONG_ANSWER', 'TIME_LIMIT_EXCEEDED', 'MEMORY_LIMIT_EXCEEDED',
+        'RUNTIME_ERROR', 'OUTPUT_LIMIT_EXCEEDED', 'PRESENTATION_ERROR', 'COMPILATION_ERROR']);
+
+    for (const contestId of recentContestIds) {
+        const subs = contestSubmissions[contestId];
+
+        // All problems the user made submissions to in this contest
+        const attemptedKeys = new Set(subs.map((s) => `${s.problem.contestId}-${s.problem.index}`));
+        const solvedKeys = new Set(subs.filter((s) => s.verdict === 'OK').map((s) => `${s.problem.contestId}-${s.problem.index}`));
+
+        // Failed problems: attempted but verdict was not OK
+        const failedKeys = new Set(subs.filter((s) => failedVerdicts.has(s.verdict)).map((s) => `${s.problem.contestId}-${s.problem.index}`));
+
+        // Find contest problems from allProblems
         const contestProblems = allProblems
             .filter((p) => p.contestId === contestId)
-            .sort((a, b) => a.index.localeCompare(b.index));
+            .sort((a, b) => getProblemIndexOrder(a.index) - getProblemIndexOrder(b.index));
 
-        // Find the first unsolved problem
+        if (contestProblems.length === 0) continue;
+
+        const maxSolved = Math.max(
+            ...contestProblems.map((cp) => statsMap.get(`${cp.contestId}-${cp.index}`) || 0)
+        );
+
+        // Add all failed problems as upsolve suggestions
         for (const p of contestProblems) {
             const key = `${p.contestId}-${p.index}`;
-            if (solvedSet.has(key)) continue;
+            if (!failedKeys.has(key)) continue;
 
             const solvedCount = statsMap.get(key) || 0;
-
-            // Estimate if ≥40% solved: use solvedCount relative to a baseline
-            // Since we don't have exact participant count per contest in the problemset API,
-            // we use the max solvedCount among contest problems as a proxy for participants
-            const maxSolved = Math.max(
-                ...contestProblems.map((cp) => statsMap.get(`${cp.contestId}-${cp.index}`) || 0)
-            );
             const solveRate = maxSolved > 0 ? solvedCount / maxSolved : 0;
 
-            if (solveRate >= 0.4) {
+            suggestions.push({
+                problemID: `${p.contestId}${p.index}`,
+                contestId: p.contestId,
+                index: p.index,
+                name: p.name,
+                rating: p.rating || null,
+                tags: p.tags || [],
+                solvedCount,
+                solveRate: Math.round(solveRate * 100),
+                contestId: p.contestId,
+                link: `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`,
+                upsolveType: 'failed',
+            });
+        }
+
+        // +1 Challenge: for each solved problem, add the next sequential unsolved/unattempted problem
+        const solvedIndices = contestProblems
+            .filter((p) => solvedKeys.has(`${p.contestId}-${p.index}`))
+            .map((p) => getProblemIndexOrder(p.index));
+
+        for (const solvedOrder of solvedIndices) {
+            // Find the next problem after this solved one that the user did NOT attempt
+            const nextProblem = contestProblems.find((p) => {
+                const order = getProblemIndexOrder(p.index);
+                const key = `${p.contestId}-${p.index}`;
+                return order > solvedOrder && !attemptedKeys.has(key);
+            });
+
+            if (nextProblem) {
+                const key = `${nextProblem.contestId}-${nextProblem.index}`;
+                const solvedCount = statsMap.get(key) || 0;
+                const solveRate = maxSolved > 0 ? solvedCount / maxSolved : 0;
+
                 suggestions.push({
-                    problemID: `${p.contestId}${p.index}`,
-                    contestId: p.contestId,
-                    index: p.index,
-                    name: p.name,
-                    rating: p.rating || null,
-                    tags: p.tags || [],
+                    problemID: `${nextProblem.contestId}${nextProblem.index}`,
+                    contestId: nextProblem.contestId,
+                    index: nextProblem.index,
+                    name: nextProblem.name,
+                    rating: nextProblem.rating || null,
+                    tags: nextProblem.tags || [],
                     solvedCount,
                     solveRate: Math.round(solveRate * 100),
-                    contestName: contest.contestName,
-                    link: `https://codeforces.com/contest/${p.contestId}/problem/${p.index}`,
+                    link: `https://codeforces.com/contest/${nextProblem.contestId}/problem/${nextProblem.index}`,
+                    upsolveType: 'challenge',
                 });
-                break; // Only first unsolved per contest
             }
         }
     }
+
     return suggestions;
 }
 
@@ -130,14 +223,12 @@ function getUpsolveSuggestions(ratingHistory, solvedSet, allProblems, statsMap) 
 async function generateRecommendations(userRating, submissions, ratingHistory, problemsetData) {
     const { problems: allProblems, problemStatistics } = problemsetData;
 
-    // Build a map of problem key -> solvedCount
     const statsMap = new Map();
     problemStatistics.forEach((ps) => {
         const key = `${ps.contestId}-${ps.index}`;
         statsMap.set(key, ps.solvedCount || 0);
     });
 
-    // Build set of solved problem keys
     const solvedSet = new Set();
     submissions.forEach((sub) => {
         if (sub.verdict === 'OK') {
@@ -145,36 +236,32 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         }
     });
 
-    // Handle unrated users: default to 800
     const effectiveRating = userRating || 800;
 
-    // Heuristic 1: Sweet spot problems
     const sweetSpot = getSweetSpotProblems(allProblems, statsMap, effectiveRating, solvedSet);
 
-    // Heuristic 2: Weak tags
     const weakTags = getWeakTags(submissions);
     const weakTagNames = new Set(weakTags.map((t) => t.tag));
 
-    // Heuristic 3: Upsolve suggestions
-    const upsolveSuggestions = getUpsolveSuggestions(ratingHistory, solvedSet, allProblems, statsMap);
+    const upsolveSuggestions = getUpsolveSuggestions(submissions, allProblems, statsMap, solvedSet);
 
-    // ── Combine & score ──
     const seen = new Set();
     const recommendations = [];
 
-    // Priority 1: Upsolve problems (top priority)
     for (const p of upsolveSuggestions) {
         const id = `${p.contestId}-${p.index}`;
         if (seen.has(id)) continue;
         seen.add(id);
+        const reason = p.upsolveType === 'challenge'
+            ? `+1 Challenge: next problem after one you solved`
+            : `Failed in contest ${p.contestId} — ${p.solveRate}% of participants solved it`;
         recommendations.push({
             ...p,
             source: 'upsolve',
-            reason: `Unsolved from "${p.contestName}" — ${p.solveRate}% of participants solved it`,
+            reason,
         });
     }
 
-    // Priority 2: Sweet spot problems matching weak tags
     const weaknessMatches = sweetSpot
         .filter((p) => {
             const id = `${p.contestId}-${p.index}`;
@@ -196,7 +283,6 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         });
     }
 
-    // Priority 3: Fill remaining with sweet-spot problems sorted by solvedCount
     const remaining = sweetSpot
         .filter((p) => !seen.has(`${p.contestId}-${p.index}`))
         .sort((a, b) => b.solvedCount - a.solvedCount);
@@ -208,7 +294,7 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         recommendations.push({
             ...p,
             source: 'sweet_spot',
-            reason: `Classic problem in your growth zone (${effectiveRating + 100}–${effectiveRating + 300} rated)`,
+            reason: `Recent problem in your growth zone (${effectiveRating + 100}–${effectiveRating + 300} rated)`,
         });
     }
 
