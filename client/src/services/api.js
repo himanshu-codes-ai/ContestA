@@ -44,4 +44,9 @@ export async function fetchDailyProblemHistory(handle, month) {
     return res.data.result;
 }
 
+export async function fetchUpsolve(handle) {
+    const res = await api.get(`/user/${handle}/upsolve`);
+    return res.data.result;
+}
+
 export default api;

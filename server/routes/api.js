@@ -49,6 +49,7 @@ router.get('/contest/:id/standings', cacheMiddleware(), async (req, res) => {
 
 // Get problem recommendations
 const { generateRecommendations, generateDailyProblem } = require('../services/recommendationEngine');
+const { getUpsolveTiers } = require('../services/upsolveEngine');
 const NodeCache = require('node-cache');
 const historyCache = new NodeCache({ stdTTL: 3600 });
 
@@ -90,6 +91,24 @@ router.get('/daily-problem/:handle', cacheMiddleware(), async (req, res) => {
         ]);
         const userRating = userInfo[0]?.rating || null;
         const result = await generateDailyProblem(userRating, submissions, problemsetData, handle);
+        res.json({ status: 'OK', result });
+    } catch (error) {
+        res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });
+    }
+});
+
+// Get Upsolving Tracker (two-tier: Triage + Challenge)
+router.get('/user/:handle/upsolve', cacheMiddleware(), async (req, res) => {
+    try {
+        const handle = req.params.handle;
+        const [userInfo, submissions, ratingHistory, problemsetData] = await Promise.all([
+            cf.getUserInfo(handle),
+            cf.getUserSubmissions(handle),
+            cf.getUserRating(handle),
+            cf.getProblemset(),
+        ]);
+        const userRating = userInfo[0]?.rating || null;
+        const result = getUpsolveTiers(userRating, submissions, ratingHistory, problemsetData.problems);
         res.json({ status: 'OK', result });
     } catch (error) {
         res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });
