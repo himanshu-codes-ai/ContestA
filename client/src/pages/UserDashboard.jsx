@@ -38,6 +38,7 @@ export default function UserDashboard() {
     const [dailyHistory, setDailyHistory] = useState(null);
     const [dailyLoading, setDailyLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState('');
+    const dailyFetchedRef = React.useRef(false);
 
     const finalHandle = handle || profile?.cf_handle;
     useEffect(() => { if (finalHandle) loadData(); }, [finalHandle]);
@@ -52,7 +53,8 @@ export default function UserDashboard() {
     }
 
     useEffect(() => {
-        if (finalHandle) {
+        if (finalHandle && !dailyFetchedRef.current) {
+            dailyFetchedRef.current = true;
             loadDaily();
         }
     }, [finalHandle]);

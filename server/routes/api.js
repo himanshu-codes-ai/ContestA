@@ -52,6 +52,7 @@ const { generateRecommendations, generateDailyProblem } = require('../services/r
 const { getUpsolveTiers } = require('../services/upsolveEngine');
 const NodeCache = require('node-cache');
 const historyCache = new NodeCache({ stdTTL: 3600 });
+const dailyCache = new NodeCache({ stdTTL: 600 });
 
 router.get('/user/:handle/recommendations', cacheMiddleware(), async (req, res) => {
     try {
@@ -81,9 +82,13 @@ router.get('/user/:handle/recommendations', cacheMiddleware(), async (req, res) 
 });
 
 // Get Daily Problem
-router.get('/daily-problem/:handle', cacheMiddleware(), async (req, res) => {
+router.get('/daily-problem/:handle', async (req, res) => {
     try {
         const handle = req.params.handle;
+        const cacheKey = `daily_${handle}`;
+        const cached = dailyCache.get(cacheKey);
+        if (cached) return res.json({ status: 'OK', result: cached });
+
         const [userInfo, submissions, problemsetData] = await Promise.all([
             cf.getUserInfo(handle),
             cf.getUserSubmissions(handle),
@@ -91,6 +96,7 @@ router.get('/daily-problem/:handle', cacheMiddleware(), async (req, res) => {
         ]);
         const userRating = userInfo[0]?.rating || null;
         const result = await generateDailyProblem(userRating, submissions, problemsetData, handle);
+        dailyCache.set(cacheKey, result);
         res.json({ status: 'OK', result });
     } catch (error) {
         res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });

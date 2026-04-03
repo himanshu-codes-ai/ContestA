@@ -113,14 +113,24 @@ async function generateDailyProblem(userRating, submissions, problemsetData, han
         (submissions || []).filter((s) => s.verdict === 'OK').map((s) => `${s.problem.contestId}-${s.problem.index}`)
     );
 
-    let validProblems = problems.filter((p) => {
+    let validProblems = (problems || []).filter((p) => {
+        if (!p || !p.contestId || !p.index) return false;
         if (!p.rating) return false;
         if (p.rating < minRating || p.rating > maxRating) return false;
         return !solved.has(`${p.contestId}-${p.index}`);
     });
 
     if (validProblems.length === 0) {
-        validProblems = problems.filter((p) => !solved.has(`${p.contestId}-${p.index}`) && p.rating);
+        validProblems = (problems || []).filter((p) => {
+            if (!p || !p.contestId || !p.index) return false;
+            return !solved.has(`${p.contestId}-${p.index}`) && p.rating;
+        });
+    }
+
+    if (validProblems.length === 0) {
+        const err = new Error('No unsolved problems found at any difficulty.');
+        err.status = 404;
+        throw err;
     }
 
     validProblems.sort((a, b) => `${a.contestId}-${a.index}`.localeCompare(`${b.contestId}-${b.index}`));
@@ -132,16 +142,14 @@ async function generateDailyProblem(userRating, submissions, problemsetData, han
         hash = ((hash << 5) - hash) + char;
         hash = hash & hash;
     }
-    const index = hash % validProblems.length;
+    const idx = Math.abs(hash) % validProblems.length;
 
-    const selectedProblem = validProblems[index];
+    const selectedProblem = validProblems[idx];
 
     const stats = (problemStatistics || []).find(
         (s) => s.contestId === selectedProblem.contestId && s.index === selectedProblem.index
     );
-    if (stats) {
-        selectedProblem.solvedCount = stats.solvedCount;
-    }
+    const solvedCount = stats ? stats.solvedCount : 0;
 
     const startOfDayUTC = new Date(dateStr + 'T00:00:00Z').getTime() / 1000;
     const endOfDayUTC = startOfDayUTC + 86400;
@@ -156,7 +164,16 @@ async function generateDailyProblem(userRating, submissions, problemsetData, han
     );
 
     return {
-        problem: selectedProblem,
+        problem: {
+            problemID: `${selectedProblem.contestId}${selectedProblem.index}`,
+            contestId: selectedProblem.contestId,
+            index: selectedProblem.index,
+            name: selectedProblem.name,
+            rating: selectedProblem.rating,
+            tags: selectedProblem.tags || [],
+            solvedCount,
+            link: `https://codeforces.com/problemset/problem/${selectedProblem.contestId}/${selectedProblem.index}`,
+        },
         date: dateStr,
         isSolvedToday,
     };
