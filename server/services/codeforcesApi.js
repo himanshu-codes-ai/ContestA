@@ -1,4 +1,8 @@
 const axios = require('axios');
+const NodeCache = require('node-cache');
+
+// Create a local memory cache for massive API responses (1 hour TTL)
+const apiCache = new NodeCache({ stdTTL: 3600 });
 
 const CF_API_BASE = 'https://codeforces.com/api';
 
@@ -39,7 +43,13 @@ module.exports = {
     return callCFApi('/contest.standings', params);
   },
   getProblemset: async () => {
+    const CACHE_KEY = 'GLOBAL_CF_PROBLEMSET';
+    const cached = apiCache.get(CACHE_KEY);
+    if (cached) return cached;
+    
+    // If not cached, fetch from CF, cache it, and return.
     const result = await callCFApi('/problemset.problems');
-    return result; // { problems: [...], problemStatistics: [...] }
+    apiCache.set(CACHE_KEY, result);
+    return result;
   },
 };

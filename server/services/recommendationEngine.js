@@ -319,4 +319,75 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
     };
 }
 
-module.exports = { generateRecommendations, getWeakTags };
+function getStringHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash);
+}
+
+async function generateDailyProblem(userRating, submissions, problemsetData, handle, dateOverride = null) {
+    const d = dateOverride ? new Date(dateOverride) : new Date();
+    // Use UTC date YYYY-MM-DD
+    const dateStr = d.toISOString().split('T')[0];
+    
+    const effectiveRating = typeof userRating === 'number' ? userRating : 1200;
+    const minRating = effectiveRating + 100;
+    const maxRating = effectiveRating + 300;
+
+    const { problems, problemStatistics } = problemsetData;
+    const solved = new Set(
+        (submissions || []).filter(s => s.verdict === 'OK').map(s => `${s.problem.contestId}-${s.problem.index}`)
+    );
+    
+    // Filter to available unsolved problems in difficulty range
+    let validProblems = problems.filter(p => {
+        if (!p.rating) return false;
+        if (p.rating < minRating || p.rating > maxRating) return false;
+        return !solved.has(`${p.contestId}-${p.index}`);
+    });
+    
+    if (validProblems.length === 0) {
+        // Fallback
+        validProblems = problems.filter(p => !solved.has(`${p.contestId}-${p.index}`) && p.rating);
+        if (validProblems.length === 0) validProblems = problems; 
+    }
+
+    // Sort to ensure absolute deterministic behavior regardless of CF API order changes
+    validProblems.sort((a, b) => `${a.contestId}-${a.index}`.localeCompare(`${b.contestId}-${b.index}`));
+
+    const seedString = `${handle}-${dateStr}`;
+    const hash = getStringHash(seedString);
+    const index = hash % validProblems.length;
+    
+    const selectedProblem = validProblems[index];
+    
+    // Merge stats
+    const stats = (problemStatistics || []).find(s => s.contestId === selectedProblem.contestId && s.index === selectedProblem.index);
+    if (stats) {
+        selectedProblem.solvedCount = stats.solvedCount;
+    }
+    
+    // Check if user solved THIS SPECIFIC PROBLEM today (matching UTC day)
+    const startOfDayUTC = new Date(dateStr + 'T00:00:00Z').getTime() / 1000;
+    const endOfDayUTC = startOfDayUTC + 86400;
+    
+    const isSolvedToday = (submissions || []).some(s => 
+        s.verdict === 'OK' && 
+        s.problem.contestId === selectedProblem.contestId &&
+        s.problem.index === selectedProblem.index &&
+        s.creationTimeSeconds >= startOfDayUTC &&
+        s.creationTimeSeconds < endOfDayUTC
+    );
+
+    return {
+        problem: selectedProblem,
+        date: dateStr,
+        isSolvedToday
+    };
+}
+
+module.exports = { generateRecommendations, getWeakTags, generateDailyProblem };

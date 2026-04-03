@@ -32,4 +32,16 @@ export async function fetchRecommendations(handle) {
     return res.data.result;
 }
 
+export async function fetchDailyProblem(handle) {
+    const res = await api.get(`/daily-problem/${handle}`);
+    return res.data.result;
+}
+
+export async function fetchDailyProblemHistory(handle, month) {
+    const params = {};
+    if (month) params.month = month;
+    const res = await api.get(`/daily-problem/${handle}/history`, { params });
+    return res.data.result;
+}
+
 export default api;

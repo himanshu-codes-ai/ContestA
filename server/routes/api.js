@@ -48,7 +48,9 @@ router.get('/contest/:id/standings', cacheMiddleware(), async (req, res) => {
 });
 
 // Get problem recommendations
-const { generateRecommendations } = require('../services/recommendationEngine');
+const { generateRecommendations, generateDailyProblem } = require('../services/recommendationEngine');
+const NodeCache = require('node-cache');
+const historyCache = new NodeCache({ stdTTL: 3600 });
 
 router.get('/user/:handle/recommendations', cacheMiddleware(), async (req, res) => {
     try {
@@ -72,6 +74,63 @@ router.get('/user/:handle/recommendations', cacheMiddleware(), async (req, res) 
         );
 
         res.json({ status: 'OK', result });
+    } catch (error) {
+        res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });
+    }
+});
+
+// Get Daily Problem
+router.get('/daily-problem/:handle', cacheMiddleware(), async (req, res) => {
+    try {
+        const handle = req.params.handle;
+        const [userInfo, submissions, problemsetData] = await Promise.all([
+            cf.getUserInfo(handle),
+            cf.getUserSubmissions(handle),
+            cf.getProblemset(),
+        ]);
+        const userRating = userInfo[0]?.rating || null;
+        const result = await generateDailyProblem(userRating, submissions, problemsetData, handle);
+        res.json({ status: 'OK', result });
+    } catch (error) {
+        res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });
+    }
+});
+
+// Get Daily Problem History (30 Days)
+router.get('/daily-problem/:handle/history', async (req, res) => {
+    try {
+        const handle = req.params.handle;
+        const monthYear = req.query.month || new Date().toISOString().slice(0, 7);
+        const cacheKey = `history_${handle}_${monthYear}`;
+        
+        let cached = historyCache.get(cacheKey);
+        if (cached) {
+            return res.json({ status: 'OK', result: cached });
+        }
+        
+        const [userInfo, submissions, problemsetData] = await Promise.all([
+            cf.getUserInfo(handle),
+            cf.getUserSubmissions(handle),
+            cf.getProblemset(),
+        ]);
+        const userRating = userInfo[0]?.rating || null;
+        
+        const history = [];
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+            const d = new Date(today.getTime() - (i * 86400000));
+            const dateStr = d.toISOString().split('T')[0];
+            const dayResult = await generateDailyProblem(userRating, submissions, problemsetData, handle, dateStr);
+            history.push({
+                date: dateStr,
+                isSolved: dayResult.isSolvedToday,
+                problemId: `${dayResult.problem.contestId}-${dayResult.problem.index}`,
+                rating: dayResult.problem.rating
+            });
+        }
+        
+        historyCache.set(cacheKey, history);
+        res.json({ status: 'OK', result: history });
     } catch (error) {
         res.status(error.status || 500).json({ status: 'FAILED', comment: error.message });
     }

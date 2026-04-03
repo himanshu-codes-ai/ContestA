@@ -42,6 +42,7 @@ export default function App() {
                         <Route path="/search" element={<SearchProfile />} />
                         <Route path="/topics" element={<TopicAnalysis />} />
                         <Route path="/topics/:handle" element={<TopicAnalysis />} />
+
                         <Route path="/upsolving" element={<UpsolvingTracker />} />
                         <Route path="/upsolving/:handle" element={<UpsolvingTracker />} />
                         <Route path="/heatmap" element={<SubmissionHeatmap />} />
