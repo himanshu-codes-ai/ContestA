@@ -75,7 +75,7 @@ export default function Recommendations() {
     if (error) return <ErrorState message={error} onRetry={loadData} />;
     if (!data) return null;
 
-    const { recommendations, weakTags, userRating } = data;
+    const { recommendations, weakTags, strategicFocus, userRating } = data;
     const rankInfo = getRankInfo(user?.rating);
 
     return (
@@ -115,67 +115,111 @@ export default function Recommendations() {
                 </p>
             </div>
 
-            {/* ── Weakness Summary ── */}
+            {/* ── Top Row: Diagnosis ── */}
             {weakTags.length > 0 && (
-                <div className="glass-card-static" style={{ marginBottom: '20px' }}>
-                    <div className="accent-line" style={{ background: 'var(--gradient-red)' }} />
-                    <h2 className="section-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-red)" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        Identified Weaknesses
-                    </h2>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: '12px',
-                    }}>
-                        {weakTags.map((wt, i) => (
-                            <div key={wt.tag} style={{
-                                background: 'rgba(239, 68, 68, 0.04)',
-                                border: '1px solid rgba(239, 68, 68, 0.1)',
-                                borderRadius: 'var(--radius-md)',
-                                padding: '16px',
-                                animation: `fadeInUp 0.4s ease forwards`,
-                                animationDelay: `${i * 0.1}s`,
-                                opacity: 0,
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                    <span style={{
-                                        fontSize: '13px', fontWeight: 600,
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                    gap: '20px',
+                    marginBottom: '20px'
+                }}>
+                    {/* Card 1: Identified Weaknesses */}
+                    <div className="glass-card-static">
+                        <div className="accent-line" style={{ background: 'var(--gradient-red)' }} />
+                        <h2 className="section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-red)" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Identified Weaknesses & Focus Areas
+                        </h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {weakTags.slice(0, 2).map((wt, i) => (
+                                <div key={wt.tag} style={{
+                                    background: 'rgba(239, 68, 68, 0.04)',
+                                    border: '1px solid rgba(239, 68, 68, 0.1)',
+                                    borderRadius: 'var(--radius-md)',
+                                    padding: '16px',
+                                    animation: `fadeInUp 0.4s ease forwards`,
+                                    animationDelay: `${i * 0.1}s`,
+                                    opacity: 0,
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                        <span style={{
+                                            fontSize: '13px', fontWeight: 600,
+                                            fontFamily: 'var(--font-sans)',
+                                            color: 'var(--color-text-bright)',
+                                        }}>
+                                            {wt.tag}
+                                        </span>
+                                        <span style={{
+                                            fontSize: '18px', fontWeight: 700,
+                                            fontFamily: 'var(--font-code)',
+                                            color: wt.accuracy < 30 ? '#ef4444' : wt.accuracy < 50 ? '#f59e0b' : '#22c55e',
+                                        }}>
+                                            {wt.accuracy}%
+                                        </span>
+                                    </div>
+                                    <div style={{
+                                        width: '100%', height: '4px', borderRadius: '2px',
+                                        background: 'rgba(255, 255, 255, 0.06)',
+                                    }}>
+                                        <div style={{
+                                            width: `${wt.accuracy}%`,
+                                            height: '100%', borderRadius: '2px',
+                                            background: wt.accuracy < 30 ? '#ef4444' : wt.accuracy < 50 ? '#f59e0b' : '#22c55e',
+                                            transition: 'width 1s ease',
+                                        }} />
+                                    </div>
+                                    <div style={{
+                                        display: 'flex', justifyContent: 'space-between',
+                                        marginTop: '8px', fontSize: '11px',
                                         fontFamily: 'var(--font-sans)',
-                                        color: 'var(--color-text-bright)',
+                                        color: 'var(--color-text-muted)',
                                     }}>
-                                        {wt.tag}
-                                    </span>
-                                    <span style={{
-                                        fontSize: '18px', fontWeight: 700,
-                                        fontFamily: 'var(--font-code)',
-                                        color: wt.accuracy < 30 ? '#ef4444' : wt.accuracy < 50 ? '#f59e0b' : '#22c55e',
-                                    }}>
-                                        {wt.accuracy}%
-                                    </span>
+                                        <span>{wt.solved} solved</span>
+                                        <span>{wt.attempted} attempted</span>
+                                    </div>
                                 </div>
-                                <div style={{
-                                    width: '100%', height: '4px', borderRadius: '2px',
-                                    background: 'rgba(255, 255, 255, 0.06)',
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Card 2: Strategic Focus */}
+                    <div className="glass-card-static">
+                        <div className="accent-line" style={{ background: 'var(--gradient-cyan)' }} />
+                        <h2 className="section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-cyan)" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4M8 12h8"/></svg>
+                            Strategic Focus
+                        </h2>
+                        <div style={{
+                            display: 'flex', flexDirection: 'column', gap: '12px',
+                            paddingTop: '4px',
+                        }}>
+                            {strategicFocus?.map((focusItem, j) => (
+                                <div key={j} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '12px',
+                                    padding: '12px',
+                                    background: 'rgba(0, 212, 255, 0.03)',
+                                    border: '1px solid rgba(0, 212, 255, 0.1)',
+                                    borderRadius: 'var(--radius-md)',
+                                    animation: `fadeInUp 0.4s ease forwards`,
+                                    animationDelay: `${j * 0.1}s`,
+                                    opacity: 0,
                                 }}>
                                     <div style={{
-                                        width: `${wt.accuracy}%`,
-                                        height: '100%', borderRadius: '2px',
-                                        background: wt.accuracy < 30 ? '#ef4444' : wt.accuracy < 50 ? '#f59e0b' : '#22c55e',
-                                        transition: 'width 1s ease',
-                                    }} />
+                                        flexShrink: 0, marginTop: '2px',
+                                        color: 'var(--color-accent-cyan)',
+                                    }}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    </div>
+                                    <p style={{
+                                        fontSize: '13px', lineHeight: 1.5,
+                                        fontFamily: 'var(--font-sans)',
+                                        color: 'var(--color-text-secondary)',
+                                    }}>
+                                        {focusItem}
+                                    </p>
                                 </div>
-                                <div style={{
-                                    display: 'flex', justifyContent: 'space-between',
-                                    marginTop: '8px', fontSize: '11px',
-                                    fontFamily: 'var(--font-sans)',
-                                    color: 'var(--color-text-muted)',
-                                }}>
-                                    <span>{wt.solved} solved</span>
-                                    <span>{wt.attempted} attempted</span>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
@@ -185,7 +229,7 @@ export default function Recommendations() {
                 <div className="accent-line" style={{ background: 'var(--gradient-green)' }} />
                 <h2 className="section-title">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-green)" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Top 5 Recommended Problems
+                    Your Targeted Top 10 Practice Set
                 </h2>
 
                 {recommendations.length === 0 ? (

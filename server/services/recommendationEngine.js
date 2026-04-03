@@ -277,7 +277,7 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         .sort((a, b) => b.solvedCount - a.solvedCount);
 
     for (const p of weaknessMatches) {
-        if (recommendations.length >= 5) break;
+        if (recommendations.length >= 10) break;
         const id = `${p.contestId}-${p.index}`;
         seen.add(id);
         const matchedTag = p.tags.find((t) => weakTagNames.has(t));
@@ -299,7 +299,7 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         .sort((a, b) => b.solvedCount - a.solvedCount);
 
     for (const p of remaining) {
-        if (recommendations.length >= 5) break;
+        if (recommendations.length >= 10) break;
         const id = `${p.contestId}-${p.index}`;
         seen.add(id);
         const reason = `Classic problem in your growth zone (${effectiveRating + 100}–${effectiveRating + 300} rated)`;
@@ -312,9 +312,32 @@ async function generateRecommendations(userRating, submissions, ratingHistory, p
         });
     }
 
+    const TAG_STRATEGIES = {
+        "dynamic programming": "Focus on clearly defining states and mastering bottom-up tabulation.",
+        "math": "Review modular arithmetic, combinatorics, and basic number theory.",
+        "greedy": "Practice identifying local optimal choices and proving global correctness.",
+        "data structures": "Strengthen intuition for when to use advanced sets, segment trees, or Fenwick trees.",
+        "graph theory": "Practice standard traversals (BFS/DFS) and cycle-finding techniques.",
+        "binary search": "Focus heavily on the 'binary search on answer' framework.",
+        "trees": "Review common tree properties, LCA, and doing DP on trees.",
+        "constructive algorithms": "Spend time playing with small test cases to find hidden invariants.",
+        "geometry": "Keep an eye on precision issues and review standard plane sweep algorithms.",
+        "strings": "Make sure you completely understand KMP, Z-algorithm, and rolling hashes."
+    };
+
+    const strategicFocus = weakTags.map(wt => {
+        const strat = TAG_STRATEGIES[wt.tag];
+        return strat || `Dedicate practice sessions specifically targeting ${wt.tag} to improve your ${wt.accuracy}% solve rate.`;
+    });
+
+    if (strategicFocus.length === 0) {
+        strategicFocus.push('Try upsolving more problems from your past contests to build an accuracy baseline.');
+    }
+
     return {
-        recommendations: recommendations.slice(0, 5),
+        recommendations: recommendations.slice(0, 10),
         weakTags,
+        strategicFocus,
         userRating: effectiveRating,
     };
 }

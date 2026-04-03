@@ -1,0 +1,10 @@
+{
+  "permission": {
+    "read": {
+      "C:/ContestA/.opencode/get-shit-done/*": "allow"
+    },
+    "external_directory": {
+      "C:/ContestA/.opencode/get-shit-done/*": "allow"
+    }
+  }
+}

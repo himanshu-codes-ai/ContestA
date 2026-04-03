@@ -37,7 +37,7 @@ export default function App() {
                 <main className={showShell ? 'main-content' : 'auth-fullpage'}>
                     <Routes>
                         <Route path="/" element={<Home />} />
-                        <Route path="/user" element={<Home />} />
+                        <Route path="/user" element={<UserDashboard />} />
                         <Route path="/user/:handle" element={<UserDashboard />} />
                         <Route path="/search" element={<SearchProfile />} />
                         <Route path="/topics" element={<TopicAnalysis />} />
