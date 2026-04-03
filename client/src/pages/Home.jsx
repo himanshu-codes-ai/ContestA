@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const features = [
     {
@@ -54,13 +55,10 @@ const stats = [
 ];
 
 export default function Home() {
-    const [handle, setHandle] = useState('');
     const navigate = useNavigate();
+    const { user, loading, profile } = useAuth();
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (handle.trim()) navigate(`/user/${handle.trim()}`);
-    };
+    if (!loading && !user) return <Navigate to="/login" replace />;
 
     return (
         <div className="page-enter">
@@ -129,52 +127,22 @@ export default function Home() {
                     </button>
                 </div>
 
-                {/* Search */}
-                <form onSubmit={handleSearch} style={{ maxWidth: '520px', margin: '0 auto' }}>
-                    <div style={{
-                        display: 'flex', gap: '8px', padding: '4px',
-                        background: 'var(--color-bg-card)',
-                        border: '1px solid var(--border-color-dim)',
-                        borderRadius: '2px',
-                    }}>
-                        <input
-                            type="text"
-                            value={handle}
-                            onChange={(e) => setHandle(e.target.value)}
-                            placeholder="Enter Codeforces handle..."
-                            className="search-input-lg"
-                            style={{ border: 'none', background: 'transparent', borderRadius: '2px' }}
-                        />
-                        <button
-                            type="submit"
-                            className="btn-primary-filled"
-                            style={{ borderRadius: '2px', padding: '12px 24px', fontSize: '13px', whiteSpace: 'nowrap', flexShrink: 0 }}
-                        >
-                            Analyze →
-                        </button>
-                    </div>
-                </form>
-
-                {/* Suggested handles */}
-                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>Try:</span>
-                    {['tourist', 'Benq', 'jiangly', 'ecnerwala'].map((h) => (
-                        <button
-                            key={h}
-                            onClick={() => { setHandle(h); }}
-                            style={{
-                                background: 'rgba(0, 255, 65, 0.04)',
-                                border: '1px solid rgba(0, 255, 65, 0.12)',
-                                color: 'var(--color-accent-green)', cursor: 'pointer', borderRadius: '2px',
-                                fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '2px 10px',
-                                transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => { e.target.style.borderColor = 'rgba(0, 255, 65, 0.3)'; e.target.style.background = 'rgba(0, 255, 65, 0.08)'; }}
-                            onMouseLeave={(e) => { e.target.style.borderColor = 'rgba(0, 255, 65, 0.12)'; e.target.style.background = 'rgba(0, 255, 65, 0.04)'; }}
-                        >
-                            {h}
-                        </button>
-                    ))}
+                {/* CTAs: analyze your profile or search others on the dedicated Search page */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '8px' }}>
+                    <button
+                        onClick={() => navigate('/user')}
+                        className="btn-primary-filled"
+                        style={{ padding: '12px 26px', fontSize: '13px' }}
+                    >
+                        Analyze My Profile
+                    </button>
+                    <button
+                        onClick={() => navigate('/search')}
+                        className="btn-primary"
+                        style={{ padding: '12px 26px', fontSize: '13px' }}
+                    >
+                        🔎 Find a Profile
+                    </button>
                 </div>
             </section>
 

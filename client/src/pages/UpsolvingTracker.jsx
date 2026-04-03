@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { fetchSubmissions, fetchRating } from '../services/api';
 import { getUnsolvedProblems } from '../utils/dataProcessing';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -8,18 +9,20 @@ import ErrorState from '../components/ErrorState';
 export default function UpsolvingTracker() {
     const { handle } = useParams();
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [inputHandle, setInputHandle] = useState('');
     const [unsolved, setUnsolved] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [doneSet, setDoneSet] = useState(new Set());
 
-    useEffect(() => { if (handle) loadData(); }, [handle]);
+    const finalHandle = handle || profile?.cf_handle;
+    useEffect(() => { if (finalHandle) loadData(); }, [finalHandle]);
 
     async function loadData() {
         setLoading(true); setError(null);
         try {
-            const [subs, ratings] = await Promise.all([fetchSubmissions(handle), fetchRating(handle)]);
+            const [subs, ratings] = await Promise.all([fetchSubmissions(finalHandle), fetchRating(finalHandle)]);
             setUnsolved(getUnsolvedProblems(subs, ratings));
         } catch (err) { setError(err.response?.data?.comment || err.message); }
         finally { setLoading(false); }
@@ -29,21 +32,20 @@ export default function UpsolvingTracker() {
         setDoneSet((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
     };
 
-    if (!handle) {
+    if (!finalHandle) {
         return (
             <div className="prompt-state page-enter">
                 <div style={{ fontSize: '40px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite', color: 'var(--color-accent-green)' }}>◎</div>
                 <h2>Upsolving Tracker</h2>
-                <p>Track unsolved problems from recent contests and mark your progress</p>
-                <form onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/upsolving/${inputHandle.trim()}`); }} style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '400px' }}>
-                    <input value={inputHandle} onChange={(e) => setInputHandle(e.target.value)} placeholder="Codeforces handle..." className="input-field" />
-                    <button type="submit" className="btn-primary">Track →</button>
-                </form>
+                <p>Set your Codeforces handle in your profile to use the Upsolving Tracker.</p>
+                <div style={{ marginTop: 12 }}>
+                    <button className="btn-primary" onClick={() => navigate('/profile')}>Go to Profile</button>
+                </div>
             </div>
         );
     }
 
-    if (loading) return <LoadingSpinner message={`Finding unsolved problems for ${handle}...`} />;
+    if (loading) return <LoadingSpinner message={`Finding unsolved problems for ${finalHandle}...`} />;
     if (error) return <ErrorState message={error} onRetry={loadData} />;
 
     const completed = doneSet.size;
@@ -56,7 +58,7 @@ export default function UpsolvingTracker() {
                         Upsolving <span style={{ color: 'var(--color-accent-green)' }}>Tracker</span>
                     </h1>
                     <p style={{ color: 'var(--color-text-muted)', fontSize: '12px', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-                        Unsolved problems from recent contests · {handle}
+                        Unsolved problems from recent contests · {finalHandle}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

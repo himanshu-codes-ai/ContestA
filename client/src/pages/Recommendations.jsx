@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchRecommendations, fetchUser } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getRankInfo } from '../utils/dataProcessing';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
@@ -25,20 +26,22 @@ const ratingColor = (r) => {
 export default function Recommendations() {
     const { handle } = useParams();
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [inputHandle, setInputHandle] = useState('');
     const [data, setData] = useState(null);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    useEffect(() => { if (handle) loadData(); }, [handle]);
+    const finalHandle = handle || profile?.cf_handle;
+    useEffect(() => { if (finalHandle) loadData(); }, [finalHandle]);
 
     async function loadData() {
         setLoading(true); setError(null);
         try {
             const [recData, userData] = await Promise.all([
-                fetchRecommendations(handle),
-                fetchUser(handle),
+                fetchRecommendations(finalHandle),
+                fetchUser(finalHandle),
             ]);
             setData(recData);
             setUser(userData);
@@ -50,7 +53,7 @@ export default function Recommendations() {
     }
 
     // ── Prompt state ──
-    if (!handle) {
+    if (!finalHandle) {
         return (
             <div className="prompt-state page-enter">
                 <div style={{
@@ -60,24 +63,15 @@ export default function Recommendations() {
                     textShadow: '0 0 30px rgba(0, 255, 65, 0.4)',
                 }}>◆</div>
                 <h2>Problem Recommendations</h2>
-                <p>Get 5 high-impact problems tailored to boost your rating</p>
-                <form
-                    onSubmit={(e) => { e.preventDefault(); if (inputHandle.trim()) navigate(`/recommend/${inputHandle.trim()}`); }}
-                    style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '400px' }}
-                >
-                    <input
-                        value={inputHandle}
-                        onChange={(e) => setInputHandle(e.target.value)}
-                        placeholder="Codeforces handle..."
-                        className="input-field"
-                    />
-                    <button type="submit" className="btn-primary">Recommend →</button>
-                </form>
+                <p>Set your Codeforces handle in your profile to get personalized recommendations.</p>
+                <div style={{ marginTop: 12 }}>
+                    <button className="btn-primary" onClick={() => navigate('/profile')}>Go to Profile</button>
+                </div>
             </div>
         );
     }
 
-    if (loading) return <LoadingSpinner message={`Analyzing ${handle}'s profile & generating recommendations...`} />;
+    if (loading) return <LoadingSpinner message={`Analyzing ${finalHandle}'s profile & generating recommendations...`} />;
     if (error) return <ErrorState message={error} onRetry={loadData} />;
     if (!data) return null;
 
@@ -88,22 +82,37 @@ export default function Recommendations() {
         <div className="page-enter">
             {/* ── Header ── */}
             <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <h1 style={{
-                        fontSize: '22px', fontWeight: 800,
-                        fontFamily: 'var(--font-display)',
-                        color: 'var(--color-text-bright)',
-                    }}>
-                        Recommendations
-                    </h1>
-                    <span className="status-tag">Live</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <h1 style={{
+                            fontSize: '22px', fontWeight: 800,
+                            fontFamily: 'var(--font-display)',
+                            color: 'var(--color-text-bright)',
+                        }}>
+                            Recommendations
+                        </h1>
+                        <span className="status-tag">Live</span>
+                    </div>
+                    <button
+                        onClick={loadData}
+                        disabled={loading}
+                        style={{
+                            padding: '8px 16px', borderRadius: '2px',
+                            background: 'rgba(0, 255, 65, 0.1)', border: '1px solid rgba(0, 255, 65, 0.2)',
+                            color: 'var(--color-accent-green)', cursor: loading ? 'not-allowed' : 'pointer',
+                            fontFamily: 'var(--font-mono)', fontSize: '12px',
+                            opacity: loading ? 0.5 : 1,
+                        }}
+                    >
+                        {loading ? '⏳' : '🔄'} Refresh
+                    </button>
                 </div>
                 <p style={{
                     color: 'var(--color-text-muted)', fontSize: '12px',
                     marginTop: '6px', fontFamily: 'var(--font-mono)',
                 }}>
                     Personalized for{' '}
-                    <span className={rankInfo.className} style={{ fontWeight: 700 }}>{handle}</span>
+                    <span className={rankInfo.className} style={{ fontWeight: 700 }}>{finalHandle}</span>
                     {' '}· Rating{' '}
                     <span style={{ color: rankInfo.color, fontWeight: 700 }}>{userRating}</span>
                     {' '}· Target zone{' '}
@@ -187,12 +196,32 @@ export default function Recommendations() {
                 </h2>
 
                 {recommendations.length === 0 ? (
-                    <p style={{
-                        color: 'var(--color-text-muted)', textAlign: 'center',
-                        padding: '60px', fontFamily: 'var(--font-mono)', fontSize: '12px',
+                    <div style={{
+                        textAlign: 'center', padding: '60px 20px',
+                        background: 'rgba(255, 51, 51, 0.04)',
+                        border: '1px solid rgba(255, 51, 51, 0.1)',
+                        borderRadius: '2px',
                     }}>
-                        No recommendations available — try solving more problems first
-                    </p>
+                        <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.6 }}>🤔</div>
+                        <p style={{
+                            color: 'var(--color-text-secondary)', 
+                            fontFamily: 'var(--font-mono)', 
+                            fontSize: '13px',
+                            marginBottom: '12px',
+                        }}>
+                            No recommendations available yet.
+                        </p>
+                        <p style={{
+                            color: 'var(--color-text-muted)', 
+                            fontFamily: 'var(--font-mono)', 
+                            fontSize: '11px',
+                            lineHeight: 1.6,
+                            maxWidth: '420px',
+                            margin: '0 auto',
+                        }}>
+                            Try solving a few more problems or participating in recent contests. Recommendations are based on your recent activity, weak tags, and unsolved contest problems.
+                        </p>
+                    </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {recommendations.map((rec, i) => {
@@ -289,6 +318,21 @@ export default function Recommendations() {
                                             }}>
                                                 💡 {rec.reason}
                                             </div>
+
+                                            {/* Why field */}
+                                            {rec.why && (
+                                                <div style={{
+                                                    marginTop: '8px', fontSize: '10px',
+                                                    fontFamily: 'var(--font-mono)',
+                                                    color: 'var(--color-text-muted)',
+                                                    lineHeight: 1.6,
+                                                    borderLeft: '2px solid rgba(0, 255, 65, 0.2)',
+                                                    paddingLeft: '10px',
+                                                    opacity: 0.85,
+                                                }}>
+                                                    {rec.why}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Right: Meta info */}

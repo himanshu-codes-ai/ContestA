@@ -4,6 +4,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { fetchSubmissions, fetchRating, fetchUser } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { compareUsers, getRankInfo } from '../utils/dataProcessing';
 import StatCard from '../components/StatCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -12,6 +13,9 @@ import ErrorState from '../components/ErrorState';
 export default function Compare() {
     const [handle1, setHandle1] = useState('');
     const [handle2, setHandle2] = useState('');
+    const { profile } = useAuth();
+
+    React.useEffect(() => { if (profile?.cf_handle) setHandle1(profile.cf_handle); }, [profile]);
     const [user1, setUser1] = useState(null);
     const [user2, setUser2] = useState(null);
     const [comparison, setComparison] = useState(null);
@@ -22,14 +26,15 @@ export default function Compare() {
         e.preventDefault();
         if (!handle1.trim() || !handle2.trim()) return;
         setLoading(true); setError(null);
-        try {
+            try {
             const [u1, u2, s1, s2, r1, r2] = await Promise.all([
                 fetchUser(handle1.trim()), fetchUser(handle2.trim()),
                 fetchSubmissions(handle1.trim()), fetchSubmissions(handle2.trim()),
                 fetchRating(handle1.trim()), fetchRating(handle2.trim()),
             ]);
             setUser1(u1); setUser2(u2);
-            setComparison(compareUsers(s1, s2, r1, r2));
+                setComparison(compareUsers(s1, s2, r1, r2));
+                // Removed solution matchups computation
         } catch (err) { setError(err.response?.data?.comment || err.message); }
         finally { setLoading(false); }
     }
@@ -160,6 +165,40 @@ export default function Compare() {
                                                         {c.rank1 < c.rank2 ? handle1.trim() : c.rank2 < c.rank1 ? handle2.trim() : 'Tie'}
                                                     </span>
                                                 </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Solution Matchup */}
+                    {matchups.length > 0 && (
+                        <div className="glass-card-static" style={{ marginTop: 16 }}>
+                            <div className="accent-line" style={{ background: 'var(--gradient-cyan)' }} />
+                            <h2 className="section-title">■ Solution Matchup (common solved problems)</h2>
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid var(--border-color-dim)' }}>
+                                            <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Problem</th>
+                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-accent-green)', fontWeight: 600, fontSize: '10px' }}>{handle1.trim()} time</th>
+                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-accent-amber)', fontWeight: 600, fontSize: '10px' }}>{handle2.trim()} time</th>
+                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Memory (U1 / U2)</th>
+                                            <th style={{ textAlign: 'center', padding: '8px 12px', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '10px' }}>Points (U1 / U2)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {matchups.slice(0, 40).map((m) => (
+                                            <tr key={m.problemKey} style={{ borderBottom: '1px solid rgba(48,54,61,0.3)' }}>
+                                                <td style={{ padding: '8px 12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text-secondary)' }}>
+                                                    <a href={`https://codeforces.com/contest/${m.contestId}/problem/${m.index}`} target="_blank" rel="noreferrer" style={{ color: 'var(--color-text-bright)' }}>{`${m.contestId}${m.index} — ${m.name}`}</a>
+                                                </td>
+                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{m.user1.time != null ? `${m.user1.time} ms` : '—'}</td>
+                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{m.user2.time != null ? `${m.user2.time} ms` : '—'}</td>
+                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{(m.user1.memory != null ? `${m.user1.memory}` : '—') + ' / ' + (m.user2.memory != null ? `${m.user2.memory}` : '—')}</td>
+                                                <td style={{ textAlign: 'center', padding: '8px 12px' }}>{(m.user1.points != null ? `${m.user1.points}` : '—') + ' / ' + (m.user2.points != null ? `${m.user2.points}` : '—')}</td>
                                             </tr>
                                         ))}
                                     </tbody>

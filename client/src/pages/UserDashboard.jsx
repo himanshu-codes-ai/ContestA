@@ -5,6 +5,7 @@ import {
     PieChart, Pie, Cell,
 } from 'recharts';
 import { fetchUser, fetchRating, fetchSubmissions } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getOverallStats, getVerdictDistribution, getRankInfo, formatDate } from '../utils/dataProcessing';
 import StatCard from '../components/StatCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,38 +16,39 @@ const VERDICT_COLORS = ['#00ff41', '#ff3333', '#ffb800', '#bc8cff', '#00d4ff', '
 export default function UserDashboard() {
     const { handle } = useParams();
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [user, setUser] = useState(null);
     const [ratingHistory, setRatingHistory] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => { if (handle) loadData(); }, [handle]);
+    const finalHandle = handle || profile?.cf_handle;
+    useEffect(() => { if (finalHandle) loadData(); }, [finalHandle]);
 
     async function loadData() {
         setLoading(true); setError(null);
         try {
-            const [u, r, s] = await Promise.all([fetchUser(handle), fetchRating(handle), fetchSubmissions(handle)]);
+            const [u, r, s] = await Promise.all([fetchUser(finalHandle), fetchRating(finalHandle), fetchSubmissions(finalHandle)]);
             setUser(u); setRatingHistory(r); setSubmissions(s);
         } catch (err) { setError(err.response?.data?.comment || err.message || 'Failed to fetch data'); }
         finally { setLoading(false); }
     }
 
-    if (!handle) {
+    if (!finalHandle) {
         return (
             <div className="prompt-state page-enter">
                 <div style={{ fontSize: '40px', marginBottom: '8px', animation: 'float 3s ease-in-out infinite', color: 'var(--color-accent-green)' }}>◈</div>
                 <h2>User Dashboard</h2>
-                <p>Enter a Codeforces handle to view full profile analytics</p>
-                <form onSubmit={(e) => { e.preventDefault(); const v = e.target.handle.value.trim(); if (v) navigate(`/user/${v}`); }} style={{ display: 'flex', gap: '10px', width: '100%', maxWidth: '400px' }}>
-                    <input name="handle" placeholder="Codeforces handle..." className="input-field" />
-                    <button type="submit" className="btn-primary">Analyze →</button>
-                </form>
+                <p>Your Codeforces handle is not set. Please add it to your profile to view analytics.</p>
+                <div style={{ marginTop: 12 }}>
+                    <button className="btn-primary" onClick={() => navigate('/profile')}>Go to Profile</button>
+                </div>
             </div>
         );
     }
 
-    if (loading) return <LoadingSpinner message={`Loading ${handle}'s profile...`} />;
+    if (loading) return <LoadingSpinner message={`Loading ${finalHandle}'s profile...`} />;
     if (error) return <ErrorState message={error} onRetry={loadData} />;
 
     const stats = getOverallStats(submissions);
@@ -74,7 +76,7 @@ export default function UserDashboard() {
                     />
                     <div style={{ flex: 1 }}>
                         <h1 style={{ fontSize: '20px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'var(--font-display)' }}>
-                            <span className={rankInfo.className}>{handle}</span>
+                            <span className={rankInfo.className}>{finalHandle}</span>
                         </h1>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                             <span className="status-tag" style={{ background: `${rankInfo.color}15`, color: rankInfo.color, borderColor: `${rankInfo.color}30` }}>
@@ -85,9 +87,9 @@ export default function UserDashboard() {
                             {user?.organization || 'No organization'} {user?.country ? `· ${user.country}` : ''}
                         </p>
                         <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-                            <Link to={`/topics/${handle}`} className="btn-ghost">🏷️ Topics</Link>
-                            <Link to={`/heatmap/${handle}`} className="btn-ghost">▣ Heatmap</Link>
-                            <Link to={`/upsolving/${handle}`} className="btn-ghost">◎ Upsolve</Link>
+                                <Link to={`/topics/${finalHandle}`} className="btn-ghost">🏷️ Topics</Link>
+                                <Link to={`/heatmap/${finalHandle}`} className="btn-ghost">▣ Heatmap</Link>
+                                <Link to={`/upsolving/${finalHandle}`} className="btn-ghost">◎ Upsolve</Link>
                         </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
