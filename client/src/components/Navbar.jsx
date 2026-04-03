@@ -29,7 +29,7 @@ const navItems = [
     )},
 ];
 
-export default function Navbar() {
+export default function Navbar({ collapsed = false, onToggle }) {
     const { user, profile } = useAuth();
     const [handle, setHandle] = useState('');
     React.useEffect(() => { if (profile?.cf_handle) setHandle(profile.cf_handle); }, [profile]);
@@ -48,6 +48,27 @@ export default function Navbar() {
 
     return (
         <>
+            {/* Floating toggle button (visible when sidebar is collapsed) */}
+            {collapsed && !mobileOpen && (
+                <button
+                    onClick={() => onToggle && onToggle()}
+                    title="Expand sidebar"
+                    style={{
+                        position: 'fixed', top: '14px', left: '14px', zIndex: 55,
+                        width: '40px', height: '40px', borderRadius: '8px',
+                        background: 'var(--color-bg-card)', border: '1px solid var(--border-color)',
+                        color: 'var(--color-text-secondary)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: 'var(--shadow-md)',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-bright)'; e.currentTarget.style.borderColor = 'var(--border-color-hover)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                </button>
+            )}
+
             {/* Mobile toggle */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -83,19 +104,28 @@ export default function Navbar() {
                     display: 'flex', flexDirection: 'column',
                     background: 'var(--color-bg-secondary)',
                     borderRight: '1px solid var(--border-color)',
-                    transition: 'transform 0.3s ease',
-                    transform: mobileOpen ? 'translateX(0)' : undefined,
+                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
-                className={`nav-sidebar ${mobileOpen ? '' : 'nav-hidden-mobile'}`}
+                className={`nav-sidebar ${mobileOpen ? 'nav-mobile-open' : ''} ${collapsed ? 'nav-collapsed' : ''}`}
             >
                 <style>{`
+                    .nav-sidebar { transform: translateX(0); }
                     @media (max-width: 1024px) {
-                        .nav-hidden-mobile { transform: translateX(-100%) !important; }
+                        .nav-sidebar { transform: translateX(-100%) !important; }
+                        .nav-mobile-open { transform: translateX(0) !important; }
+                    }
+                    .nav-collapsed { transform: translateX(-100%) !important; }
+                    @media (max-width: 1024px) {
+                        .nav-mobile-open.nav-collapsed { transform: translateX(-100%) !important; }
                     }
                 `}</style>
 
                 {/* Logo */}
-                <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                <div
+                    style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+                    onClick={() => onToggle && onToggle()}
+                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
                             width: '32px', height: '32px', borderRadius: '8px',

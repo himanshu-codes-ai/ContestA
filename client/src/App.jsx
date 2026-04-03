@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -24,16 +24,17 @@ export default function App() {
     const location = useLocation();
     const authOnlyRoutes = ['/login'];
     const showShell = !authOnlyRoutes.includes(location.pathname);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     return (
         <AuthProvider>
-            <div className="app-layout">
+            <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
             {/* Terminal background grid + scanlines */}
             {showShell && <div className="bg-grid" />}
             {showShell && <div className="orb orb-1" />}
             {showShell && <div className="orb orb-2" />}
 
-            {showShell && <Navbar />}
+            {showShell && <Navbar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />}
                 <main className={showShell ? 'main-content' : 'auth-fullpage'}>
                     <Routes>
                         <Route path="/" element={<Home />} />
